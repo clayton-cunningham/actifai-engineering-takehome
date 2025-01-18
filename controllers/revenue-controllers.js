@@ -16,13 +16,23 @@ pgclient.connect();
 /**
  * Retrieves the sales revenue for a user.
  * @param {groupId} req The user to retrieve sales for
+ * @param {fromMonth}   query The first month to include
+ * @param {fromYear}    query The first year to include
+ * @param {toMonth}     query The last month to include
+ * @param {toYear}      query The last year to include
  */
 const getRevenueByUser = async (req, res, next) => {
     const userId = req.params.userId;
+    const { fromMonth, fromYear, toMonth, toYear } = req.query;
+
+    if (!fromMonth || !fromYear || !toMonth || !toYear) {
+        const error = new Error("Please add appropriate to and from dates, with a month and a year.", 400);
+        return next(error);
+    }
 
     let revenue;
     try {
-        revenue = (await pgclient.query(queries.getRevenueByUserTableQuery(userId))).rows;
+        revenue = (await pgclient.query(queries.getRevenueByUserTableQuery(userId, fromMonth, fromYear, toMonth, toYear))).rows;
     } catch (e) {
         const error = new Error('Failed to retrieve revenue, please try again', 500);
         return next(error);
@@ -33,7 +43,7 @@ const getRevenueByUser = async (req, res, next) => {
         return next(error);
     }
 
-    res.json({ totalRevenue : revenue });
+    res.json({ revenueByMonth : revenue });
 }
 
 /**
@@ -66,7 +76,7 @@ const getRevenueByGroup = async (req, res, next) => {
         return next(error);
     }
 
-    res.json({ totalRevenue : revenue });
+    res.json({ revenueByMonth : revenue });
 }
 
 exports.getRevenueByUser = getRevenueByUser;
