@@ -14,61 +14,15 @@ const pgclient = new Client({
 pgclient.connect();
 
 /**
- * Retrieves the average sales revenue for a user.
- * @param {userId} req The user to retrieve average sales for
- */
-const getAverageRevenueByUser = async (req, res, next) => {
-    const userId = req.params.userId;
-    
-    let revenue;
-    try {
-        revenue = (await pgclient.query(queries.getAverageRevenueByUserTableQuery(userId))).rows[0].average;
-    } catch (e) {
-        const error = new Error('Failed to retrieve revenue, please try again', 500);
-        return next(error);
-    }
-
-    if (!revenue) {
-        const error = new Error("Could not find any revenue for the provided id.", 404);
-        return next(error);
-    }
-
-    res.json({ averageRevenue : revenue });
-}
-
-/**
- * Retrieves the average sales revenue for a group of users.
- * @param {userId} req The group to retrieve average sales for
- */
-const getAverageRevenueByGroup = async (req, res, next) => {
-    const groupId = req.params.groupId;
-
-    let revenue;
-    try {
-        revenue = (await pgclient.query(queries.getAverageRevenueByGroupTableQuery(groupId))).rows[0].average;
-    } catch (e) {
-        const error = new Error('Failed to retrieve revenue, please try again', 500);
-        return next(error);
-    }
-
-    if (!revenue) {
-        const error = new Error("Could not find any revenue for the provided id.", 404);
-        return next(error);
-    }
-
-    res.json({ averageRevenue : revenue });
-}
-
-/**
- * Retrieves the total sales revenue for a user.
+ * Retrieves the sales revenue for a user.
  * @param {groupId} req The user to retrieve sales for
  */
-const getTotalRevenueByUser = async (req, res, next) => {
+const getRevenueByUser = async (req, res, next) => {
     const userId = req.params.userId;
 
     let revenue;
     try {
-        revenue = (await pgclient.query(queries.getTotalRevenueByUserTableQuery(userId))).rows[0].total;
+        revenue = (await pgclient.query(queries.getRevenueByUserTableQuery(userId))).rows;
     } catch (e) {
         const error = new Error('Failed to retrieve revenue, please try again', 500);
         return next(error);
@@ -83,26 +37,25 @@ const getTotalRevenueByUser = async (req, res, next) => {
 }
 
 /**
- * Retrieves the total sales revenue for a group.
+ * Retrieves the sales revenue for a group.
  * @param {groupId} req The group to retrieve sales for
+ * @param {fromMonth}   query The first month to include
+ * @param {fromYear}    query The first year to include
+ * @param {toMonth}     query The last month to include
+ * @param {toYear}      query The last year to include
  */
-const getTotalRevenueByGroup = async (req, res, next) => {
+const getRevenueByGroup = async (req, res, next) => {
     const { groupId } = req.params;
-    const { month, year, fromMonth, fromYear, toMonth, toYear } = req.query;
+    const { fromMonth, fromYear, toMonth, toYear } = req.query;
 
-    if ((!year || !month) && (!fromMonth || !fromYear || !toMonth || !toYear)) {
-        const error = new Error("Please add a date selection, or appropriate to and from dates, with a month and a year.", 400);
+    if (!fromMonth || !fromYear || !toMonth || !toYear) {
+        const error = new Error("Please add appropriate to and from dates, with a month and a year.", 400);
         return next(error);
     }
 
     let revenue;
     try {
-        if (year && month) {
-            revenue = (await pgclient.query(queries.getTotalRevenueByGroupTableQuery(groupId, month, year))).rows[0].total;
-        }
-        else {
-            revenue = (await pgclient.query(queries.getTotalRevenueByGroupTableQueryRange(groupId, fromMonth, fromYear, toMonth, toYear))).rows[0].total;
-        }
+        revenue = (await pgclient.query(queries.getRevenueByGroupTableQueryRange(groupId, fromMonth, fromYear, toMonth, toYear))).rows;
     } catch (e) {
         const error = new Error('Failed to retrieve revenue, please try again', 500);
         return next(error);
@@ -116,7 +69,5 @@ const getTotalRevenueByGroup = async (req, res, next) => {
     res.json({ totalRevenue : revenue });
 }
 
-exports.getAverageRevenueByUser = getAverageRevenueByUser;
-exports.getAverageRevenueByGroup = getAverageRevenueByGroup;
-exports.getTotalRevenueByUser = getTotalRevenueByUser;
-exports.getTotalRevenueByGroup = getTotalRevenueByGroup;
+exports.getRevenueByUser = getRevenueByUser;
+exports.getRevenueByGroup = getRevenueByGroup;
