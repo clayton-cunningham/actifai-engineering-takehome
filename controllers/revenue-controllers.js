@@ -87,11 +87,22 @@ const getTotalRevenueByUser = async (req, res, next) => {
  * @param {groupId} req The group to retrieve sales for
  */
 const getTotalRevenueByGroup = async (req, res, next) => {
-    const groupId = req.params.groupId;
+    const { groupId } = req.params;
+    const { month, year, fromMonth, fromYear, toMonth, toYear } = req.query;
+
+    if ((!year || !month) && (!fromMonth || !fromYear || !toMonth || !toYear)) {
+        const error = new Error("Please add a date selection, or appropriate to and from dates, with a month and a year.", 400);
+        return next(error);
+    }
 
     let revenue;
     try {
-        revenue = (await pgclient.query(queries.getTotalRevenueByGroupTableQuery(groupId))).rows[0].total;
+        if (year && month) {
+            revenue = (await pgclient.query(queries.getTotalRevenueByGroupTableQuery(groupId, month, year))).rows[0].total;
+        }
+        else {
+            revenue = (await pgclient.query(queries.getTotalRevenueByGroupTableQueryRange(groupId, fromMonth, fromYear, toMonth, toYear))).rows[0].total;
+        }
     } catch (e) {
         const error = new Error('Failed to retrieve revenue, please try again', 500);
         return next(error);
