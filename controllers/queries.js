@@ -13,10 +13,10 @@ const filterByMonthYearRange = (fromMonth, fromYear, toMonth, toYear) => `SELECT
 // Keep these cast commands - ensures we don't only return full dollars.  The decimals can be expanded in the future if necessary to avoid rounding issues.
 const getAverage = `cast(cast
                         (SUM(amount) as DECIMAL(11, 3)) / COUNT(*)
-                    as DECIMAL(10, 2)) as average `;
+                    as DECIMAL(10, 2))`;
 
 // Aggregations
-const getRevenueByUserTableQuery =     (userId, fromMonth, fromYear, toMonth, toYear)    => 
+const getRevenueByUserTableQuery =     (userId, fromMonth, fromYear, toMonth, toYear, sortBy, sortDirection)    => 
                                                         `SELECT 
                                                             ${getMonthYearFromDate} as month,
                                                             SUM(amount) as totalSaleRevenue,
@@ -24,8 +24,9 @@ const getRevenueByUserTableQuery =     (userId, fromMonth, fromYear, toMonth, to
                                                             ${getAverage} as averageRevenueBySales
                                                         FROM (${filterByMonthYearRange(fromMonth, fromYear, toMonth, toYear)}) Sales 
                                                         WHERE user_id = '${userId}'
-                                                        GROUP BY ${getMonthYearFromDate}`;
-const getRevenueByGroupTableQueryRange =    (groupId, fromMonth, fromYear, toMonth, toYear)   => 
+                                                        GROUP BY ${getMonthYearFromDate}
+                                                        ORDER BY ${sortBy} ${sortDirection}`;
+const getRevenueByGroupTableQueryRange =    (groupId, fromMonth, fromYear, toMonth, toYear, sortBy, sortDirection)   => 
                                                         `SELECT 
                                                             ${getMonthYearFromDate} as month,
                                                             SUM(amount) as totalSaleRevenue, 
@@ -33,7 +34,8 @@ const getRevenueByGroupTableQueryRange =    (groupId, fromMonth, fromYear, toMon
                                                             ${getAverage} as averageRevenueBySales
                                                         FROM (${filterByMonthYearRange(fromMonth, fromYear, toMonth, toYear)}) Sales 
                                                         INNER JOIN (${getUsersByGroupTableQuery(groupId)}) as Users ON Sales.user_id = Users.user_id 
-                                                        GROUP BY ${getMonthYearFromDate}`;
+                                                        GROUP BY ${getMonthYearFromDate}
+                                                        ORDER BY ${sortBy} ${sortDirection}`;
 
 exports.getSaleTableQuery = getSaleTableQuery;
 exports.getSalesByUserTableQuery = getSalesByUserTableQuery;

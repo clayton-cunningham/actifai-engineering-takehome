@@ -13,6 +13,8 @@ const pgclient = new Client({
 
 pgclient.connect();
 
+const sortOptions = [ 'month', 'totalsalerevenue', 'numberofsales', 'averagerevenuebysales' ];
+
 /**
  * Retrieves the sales revenue for a user.
  * @param {groupId} req The user to retrieve sales for
@@ -20,19 +22,24 @@ pgclient.connect();
  * @param {fromYear}    query The first year to include
  * @param {toMonth}     query The last month to include
  * @param {toYear}      query The last year to include
+ * @param {sortBy}              query Optional - the field to sort by (default: month)
+ * @param {sortDirection}       query Optional - the direction to sort in (default: ASC)
  */
 const getRevenueByUser = async (req, res, next) => {
     const userId = req.params.userId;
     const { fromMonth, fromYear, toMonth, toYear } = req.query;
+    let { sortBy, sortDirection } = req.query;
 
     if (!fromMonth || !fromYear || !toMonth || !toYear) {
         const error = new Error("Please add appropriate to and from dates, with a month and a year.", 400);
         return next(error);
     }
+    if (!sortBy || sortOptions.find(s => s == sortBy) == undefined) sortBy = 'month';
+    if (!sortDirection || sortDirection != 'DESC' && sortDirection != 'ASC') sortDirection = 'ASC';
 
     let revenue;
     try {
-        revenue = (await pgclient.query(queries.getRevenueByUserTableQuery(userId, fromMonth, fromYear, toMonth, toYear))).rows;
+        revenue = (await pgclient.query(queries.getRevenueByUserTableQuery(userId, fromMonth, fromYear, toMonth, toYear, sortBy, sortDirection))).rows;
     } catch (e) {
         const error = new Error('Failed to retrieve revenue, please try again', 500);
         return next(error);
@@ -53,19 +60,24 @@ const getRevenueByUser = async (req, res, next) => {
  * @param {fromYear}    query The first year to include
  * @param {toMonth}     query The last month to include
  * @param {toYear}      query The last year to include
+ * @param {sortBy}              query Optional - the field to sort by (default: month)
+ * @param {sortDirection}       query Optional - the direction to sort in (default: ASC)
  */
 const getRevenueByGroup = async (req, res, next) => {
     const { groupId } = req.params;
     const { fromMonth, fromYear, toMonth, toYear } = req.query;
+    let { sortBy, sortDirection } = req.query;
 
     if (!fromMonth || !fromYear || !toMonth || !toYear) {
         const error = new Error("Please add appropriate to and from dates, with a month and a year.", 400);
         return next(error);
     }
+    if (!sortBy || sortOptions.find(s => s == sortBy.toLowerCase()) == undefined) sortBy = 'month';
+    if (!sortDirection || sortDirection != 'DESC' && sortDirection != 'ASC') sortDirection = 'ASC';
 
     let revenue;
     try {
-        revenue = (await pgclient.query(queries.getRevenueByGroupTableQueryRange(groupId, fromMonth, fromYear, toMonth, toYear))).rows;
+        revenue = (await pgclient.query(queries.getRevenueByGroupTableQueryRange(groupId, fromMonth, fromYear, toMonth, toYear, sortBy, sortDirection))).rows;
     } catch (e) {
         const error = new Error('Failed to retrieve revenue, please try again', 500);
         return next(error);
