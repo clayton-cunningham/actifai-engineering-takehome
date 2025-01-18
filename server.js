@@ -5,6 +5,7 @@ const seeder = require('./seed');
 
 const salesRoutes = require("./routes/sales-routes");
 const revenueRoutes = require("./routes/revenue-routes");
+const bodyParser = require('body-parser');
 
 // Constants
 const PORT = 3000;
@@ -22,8 +23,15 @@ async function start() {
     res.send('Hello World');
   });
 
+  app.use(bodyParser.json());
+
   app.use("/sales", salesRoutes)
   app.use("/revenue", revenueRoutes)
+
+  app.use((req, res, next) => {
+      const error = new Error('Route does not exist', 404);
+      throw error;
+  });
 
   app.use((error, req, res, next) => {
       if (res.headerSent && error) {
