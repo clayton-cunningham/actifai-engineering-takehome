@@ -18,12 +18,6 @@ const getUsersByGroupAndRoleTableQuery = (groupId, role) => `SELECT user_id
                                                                 INNER JOIN users as Users 
                                                                     ON Groups.user_id = Users.id
                                                                 WHERE (group_id = '${groupId}' AND role = '${role}')`;
-const addUserTableQuery =                (userId, name, role)          => `INSERT INTO users       (id, name, role)    VALUES (${userId}, '${name}', '${role}')`;
-const addUserToGroupTableQuery =         (userId, groupId)             => `INSERT INTO user_groups (user_id, group_id) VALUES (${userId}, '${groupId}')`;
-const createUserTableQuery =             (userId, name, role, groupId) => `BEGIN TRANSACTION;
-                                                                             ${addUserTableQuery(userId, name, role)};
-                                                                             ${addUserToGroupTableQuery(userId, groupId)};
-                                                                           COMMIT;`;
 const removeUserTableQuery =             (userId)        => `DELETE FROM users       WHERE id =      '${userId}'`;
 const removeUserFromGroupTableQuery =    (userId)        => `DELETE FROM user_groups WHERE user_id = '${userId}'`;
 const removeUserSalesTableQuery =        (userId)        => `DELETE FROM sales       WHERE user_id = '${userId}'`;
@@ -32,12 +26,20 @@ const deleteUserTableQuery =             (userId)        => `BEGIN TRANSACTION;
                                                                ${removeUserFromGroupTableQuery(userId)};
                                                                ${removeUserTableQuery(userId)};
                                                                COMMIT;`;
+const addUserTableQuery =                (userId, name, role)          => `INSERT INTO users       (id, name, role)    VALUES (${userId}, '${name}', '${role}')`;
+const addUserToGroupTableQuery =         (userId, groupId)             => `INSERT INTO user_groups (user_id, group_id) VALUES (${userId}, '${groupId}')`;
+const createUserTableQuery =             (userId, name, role, groupId) => `BEGIN TRANSACTION;
+                                                                             ${addUserTableQuery(userId, name, role)};
+                                                                             ${addUserToGroupTableQuery(userId, groupId)};
+                                                                           COMMIT;`;
 
 
 /**
  * Group data
  */
-const getGroupTableQuery =           (groupId)        => `SELECT * FROM groups WHERE id =      '${groupId}'`;
+const getGroupTableQuery =           (groupId)             => `SELECT * FROM groups WHERE id =      '${groupId}'`;
+const deleteGroupTableQuery =        (groupId)             => `DELETE FROM groups   WHERE id =      '${groupId}'`;
+const createGroupTableQuery =        (groupId, groupName)  => `INSERT INTO groups (id, name) VALUES (${groupId}, '${groupName}')`;
 
 /**
  * Helpers
@@ -78,11 +80,14 @@ const getRevenueByGroupTableQueryRange =    (groupId, fromMonth, fromYear, toMon
 module.exports = {
     getSaleTableQuery,
     getSalesByUserTableQuery,
-    createSaleTableQuery,
     deleteSaleTableQuery,
+    createSaleTableQuery,
     getUserTableQuery,
-    createUserTableQuery,
+    getUsersByGroupTableQuery,
     deleteUserTableQuery,
+    createUserTableQuery,
+    deleteGroupTableQuery,
+    createGroupTableQuery,
     getGroupTableQuery,
     getNewIdTableQuery,
     getRevenueByUserTableQuery,

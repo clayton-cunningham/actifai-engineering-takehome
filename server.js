@@ -5,6 +5,7 @@ const seeder = require('./seed');
 
 const salesRoutes = require("./routes/sales-routes");
 const usersRoutes = require("./routes/users-routes");
+const groupsRotues = require("./routes/groups-routes");
 const revenueRoutes = require("./routes/revenue-routes");
 const bodyParser = require('body-parser');
 
@@ -28,6 +29,7 @@ async function start() {
 
   app.use("/sales", salesRoutes)
   app.use("/user", usersRoutes)
+  app.use("/group", groupsRotues)
   app.use("/revenue", revenueRoutes)
 
   app.use((req, res, next) => {
