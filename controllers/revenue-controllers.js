@@ -17,7 +17,7 @@ const sortOptions = [ 'month', 'totalsalerevenue', 'numberofsales', 'averagereve
 
 /**
  * Retrieves the sales revenue for a user.
- * @param {groupId} req The user to retrieve sales for
+ * @param {userId}      req The user to retrieve sales for
  * @param {fromMonth}   query The first month to include
  * @param {fromYear}    query The first year to include
  * @param {toMonth}     query The last month to include
