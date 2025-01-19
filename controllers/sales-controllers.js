@@ -14,17 +14,16 @@ const pgclient = new Client({
 
 pgclient.connect();
 
-
 /**
  * Retrieves a sale by id.
- * @param {saleId} req The sale to retrieve
+ * @param {saleId} params The sale to retrieve
  */
 const getSaleById = async (req, res, next) => {
     const saleId = req.params.saleId;
 
     let sale;
     try {
-        sale = await pgclient.query(queries.getSaleTableQuery(saleId));
+        sale = (await pgclient.query(queries.getSaleTableQuery(saleId))).rows[0];
     } catch (e) {
         const error = new Error('Failed to retrieve a sale, please try again', 500);
         return next (error);
@@ -35,13 +34,13 @@ const getSaleById = async (req, res, next) => {
         return next (error);
     }
 
-    res.json({ sale: sale.rows[0] });
+    res.json({ sale });
 }
 
 /**
  * Retrieves a user's sales
- * @param {userId} req The user to retrieve sales for
- * @param {limit} req Optional; specifies a maximum number of sales to retrieve.  Default is 10.
+ * @param {userId} params The user to retrieve sales for
+ * @param {limit}  query  Optional; specifies a maximum number of sales to retrieve.  Default is 10.
  */
 const getSalesByUserId = async (req, res, next) => {
     const userId = req.params.userId;
@@ -52,30 +51,30 @@ const getSalesByUserId = async (req, res, next) => {
     } 
     else if (limit > 50) {
         limit = 50;
-    } 
+    }
 
     let sales;
     try {
-        sales = await pgclient.query(queries.getSalesByUserTableQuery(userId, limit));
+        sales = (await pgclient.query(queries.getSalesByUserTableQuery(userId, limit))).rows;
     } catch (e) {
         const error = new Error(`Failed to retrieve a user's sales, please try again`, 500);
         return next (error);
     }
 
-    if (!sales) {
+    if (!sales || sales.length == 0) {
         const error = new Error("Could not find any sales for the provided id.", 404);
         return next (error);
     }
 
-    res.json({ sales: sales.rows });
+    res.json({ sales });
 }
 
 /**
  * Creates a sale record
- *  * Note: we currently generate an id, but we may want to require a sale id to be input for consistency with other records.
- * @param {userId}  req The user to add a sale for
- * @param {amount}  req The sale amount
- * @param {date}    req The sale date (format: YYYY-MM-DD)
+ *  * Note: we currently generate an id, but we may want to require a sale id to be input for consistency with other records external to this system.
+ * @param {userId}  body The user to add a sale for
+ * @param {amount}  body The sale amount
+ * @param {date}    body The sale date (format: YYYY-MM-DD)
  */
 const createSale = async (req, res, next) => {
     
@@ -91,7 +90,7 @@ const createSale = async (req, res, next) => {
     // Obtain the user to confirm they exist.
     // Obtain the maximum id for a sale to generate a new id (*see note in function comment header)
     let user;
-    let newSaleId
+    let newSaleId;
     try {
         user = await pgclient.query(queries.getUserTableQuery(userId));
         newSaleId = parseInt((await pgclient.query(queries.getNewIdTableQuery('sales'))).rows[0].id) + 1;
@@ -119,7 +118,7 @@ const createSale = async (req, res, next) => {
 
 /**
  * Deletes a sale record
- * @param {saleId} req The sale to delete
+ * @param {saleId} params The sale to delete
  */
 const deleteSale = async (req, res, next) => {
     const { saleId } = req.params;

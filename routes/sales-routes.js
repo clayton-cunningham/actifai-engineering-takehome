@@ -8,7 +8,7 @@ const { check } = require('express-validator');
 const router = express.Router();
 
 router.get("/:saleId", salesControllers.getSaleById);
-router.get("/user/:userId", salesControllers.getSalesByUserId);
+router.get("/forUser/:userId", salesControllers.getSalesByUserId);
 
 router.post("/",
     [
@@ -20,6 +20,5 @@ router.post("/",
 );
 
 router.delete("/:saleId", salesControllers.deleteSale);
-
 
 module.exports = router;

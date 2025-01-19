@@ -4,6 +4,7 @@ const express = require('express');
 const seeder = require('./seed');
 
 const salesRoutes = require("./routes/sales-routes");
+const usersRoutes = require("./routes/users-routes");
 const revenueRoutes = require("./routes/revenue-routes");
 const bodyParser = require('body-parser');
 
@@ -26,6 +27,7 @@ async function start() {
   app.use(bodyParser.json());
 
   app.use("/sales", salesRoutes)
+  app.use("/user", usersRoutes)
   app.use("/revenue", revenueRoutes)
 
   app.use((req, res, next) => {
