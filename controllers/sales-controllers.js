@@ -134,7 +134,9 @@ const deleteSale = async (req, res, next) => {
     res.status(204).json({});
 }
 
-exports.getSaleById = getSaleById;
-exports.getSalesByUserId = getSalesByUserId;
-exports.createSale = createSale;
-exports.deleteSale = deleteSale;
+module.exports = {
+    getSaleById,
+    getSalesByUserId,
+    createSale,
+    deleteSale
+}

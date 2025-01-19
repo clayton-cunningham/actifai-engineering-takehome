@@ -14,6 +14,7 @@ const pgclient = new Client({
 pgclient.connect();
 
 const sortOptions = [ 'month', 'totalsalerevenue', 'numberofsales', 'averagerevenuebysales' ];
+const validRoles =  [ 'Admin', 'Call Center Agent', 'Retail Agent' ];
 
 /**
  * Retrieves the sales revenue for a user.
@@ -62,11 +63,12 @@ const getRevenueByUser = async (req, res, next) => {
  * @param {toYear}      query The last year to include
  * @param {sortBy}              query Optional - the field to sort by (default: month)
  * @param {sortDirection}       query Optional - the direction to sort in (default: ASC)
+ * @param {role}                query Optional - additional filter, to only aggregate on users with a specific role
  */
 const getRevenueByGroup = async (req, res, next) => {
     const { groupId } = req.params;
     const { fromMonth, fromYear, toMonth, toYear } = req.query;
-    let { sortBy, sortDirection } = req.query;
+    let { sortBy, sortDirection, role } = req.query;
 
     if (!fromMonth || !fromYear || !toMonth || !toYear) {
         const error = new Error("Please add appropriate to and from dates, with a month and a year.", 400);
@@ -74,10 +76,11 @@ const getRevenueByGroup = async (req, res, next) => {
     }
     if (!sortBy || sortOptions.find(s => s == sortBy.toLowerCase()) == undefined) sortBy = 'month';
     if (!sortDirection || sortDirection != 'DESC' && sortDirection != 'ASC') sortDirection = 'ASC';
+    if (role && validRoles.find(r => r.toLowerCase() == role.toLowerCase()) == undefined) role = '';
 
     let revenue;
     try {
-        revenue = (await pgclient.query(queries.getRevenueByGroupTableQueryRange(groupId, fromMonth, fromYear, toMonth, toYear, sortBy, sortDirection))).rows;
+        revenue = (await pgclient.query(queries.getRevenueByGroupTableQueryRange(groupId, fromMonth, fromYear, toMonth, toYear, sortBy, sortDirection, role))).rows;
     } catch (e) {
         const error = new Error('Failed to retrieve revenue, please try again', 500);
         return next(error);
@@ -91,5 +94,7 @@ const getRevenueByGroup = async (req, res, next) => {
     res.json({ revenueByMonth : revenue });
 }
 
-exports.getRevenueByUser = getRevenueByUser;
-exports.getRevenueByGroup = getRevenueByGroup;
+module.exports = {
+    getRevenueByUser,
+    getRevenueByGroup
+}
