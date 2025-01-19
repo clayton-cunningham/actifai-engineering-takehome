@@ -25,13 +25,11 @@ const getSaleById = async (req, res, next) => {
     try {
         sale = (await pgclient.query(queries.getSaleTableQuery(saleId))).rows[0];
     } catch (e) {
-        const error = new Error('Failed to retrieve a sale, please try again at a later time', 500);
-        return next (error);
+        return next(new Error('Failed to retrieve a sale, please try again at a later time', 500));
     }
 
     if (!sale) {
-        const error = new Error("Could not find a sale for the provided id.", 404);
-        return next (error);
+        return next(new Error("Could not find a sale for the provided id.", 404));
     }
 
     res.json({ sale });
@@ -57,13 +55,11 @@ const getSalesByUserId = async (req, res, next) => {
     try {
         sales = (await pgclient.query(queries.getSalesByUserTableQuery(userId, limit))).rows;
     } catch (e) {
-        const error = new Error(`Failed to retrieve a user's sales, please try again at a later time`, 500);
-        return next (error);
+        return next(new Error(`Failed to retrieve a user's sales, please try again at a later time`, 500));
     }
 
     if (!sales || sales.length == 0) {
-        const error = new Error("Could not find any sales for the provided id.", 404);
-        return next (error);
+        return next(new Error("Could not find any sales for the provided id.", 404));
     }
 
     res.json({ sales });
@@ -87,30 +83,21 @@ const createSale = async (req, res, next) => {
 
     const { userId, amount, date } = req.body;
 
-    // Obtain the user to confirm they exist.
-    // Obtain the maximum id for a sale to generate a new id (*see note in function comment header)
-    let user;
     let newSaleId;
     try {
-        user = (await pgclient.query(queries.getUserTableQuery(userId))).rows[0];
+        // Obtain the user to confirm they exist. If not, we cannot create a sale
+        let user = (await pgclient.query(queries.getUserTableQuery(userId))).rows[0];
+        if (!user) {
+            return next(new Error("Could not find a user for the provided id.", 404));
+        }
+
+        // Obtain the maximum id for a sale to generate a new id (*see note in function comment header)
         newSaleId = parseInt((await pgclient.query(queries.getNewIdTableQuery('sales'))).rows[0].id) + 1;
-    } catch (e) {
-        const error = new Error('Failed to access database, please try again at a later time', 500);
-        return next (error);
-    }
 
-    // If the user specified doesn't exist, we cannot create a sale
-    if (!user) {
-        const error = new Error("Could not find a user for the provided id.", 404);
-        return next (error);
-    }
-
-    // Create a sale
-    try {
+        // Create a sale
         await pgclient.query(queries.createSaleTableQuery(newSaleId, userId, amount, date));
     } catch (e) {
-        const error = new Error('Failed to access database, please try again at a later time', 500);
-        return next (error);
+        return next(new Error('Failed to access database, please try again at a later time', 500));
     }
     
     res.status(201).json({ id: newSaleId });
@@ -123,24 +110,17 @@ const createSale = async (req, res, next) => {
 const deleteSale = async (req, res, next) => {
     const { saleId } = req.params;
 
-    let sale;
     try {
-        sale = (await pgclient.query(queries.getSaleTableQuery(saleId))).rows[0];
-    } catch (e) {
-        const error = new Error('Failed to access database, please try again at a later time', 500);
-        return next (error);
-    }
+        // Check if the sale exists
+        let sale = (await pgclient.query(queries.getSaleTableQuery(saleId))).rows[0];
+        if (!sale) {
+            return next(new Error("Could not find a sale for the provided id.", 404));
+        }
 
-    if (!sale) {
-        const error = new Error("Could not find a sale for the provided id.", 404);
-        return next (error);
-    }
-
-    try {
+        // Delete the sale
         await pgclient.query(queries.deleteSaleTableQuery(saleId));
     } catch (e) {
-        const error = new Error('Failed to access database, please try again at a later time', 500);
-        return next (error);
+        return next(new Error('Failed to access database, please try again at a later time', 500));
     }
     
     res.status(204).json({});

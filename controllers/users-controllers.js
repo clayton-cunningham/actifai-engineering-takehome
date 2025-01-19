@@ -25,13 +25,11 @@ const getUserById = async (req, res, next) => {
     try {
         user = (await pgclient.query(queries.getUserTableQuery(userId))).rows[0];
     } catch (e) {
-        const error = new Error('Failed to retrieve a user, please try again at a later time', 500);
-        return next (error);
+        return next(new Error('Failed to retrieve a user, please try again at a later time', 500));
     }
 
     if (!user) {
-        const error = new Error("Could not find a user for the provided id.", 404);
-        return next (error);
+        return next(new Error("Could not find a user for the provided id.", 404));
     }
 
     res.json({ user });
@@ -40,6 +38,7 @@ const getUserById = async (req, res, next) => {
 /**
  * Creates a user record
  *  * Note: we currently generate an id, but we may want to require a user id to be input for consistency with other records external to this system.
+ *    Note 2 - we check if the group exist, but not if the user already exists.  We may want to add this in the future (i.e. if we can assume a user's full name will be unique)
  * @param {name}    body The user's name'
  * @param {role}    body The user's role
  * @param {groupId} body The user group to add this user to
@@ -55,31 +54,21 @@ const createUser = async (req, res, next) => {
 
     const { name, role, groupId } = req.body;
 
-    // Obtain the maximum id for a user to generate a new id (*see note in function comment header)
-    // Check that the group exists
-    //  Note - we currently do not check if the user exists.  We may want to add this in the future (i.e. if we can assume a user's full name will be unique)
     let newUserId;
-    let group;
     try {
+        // Check that the group exists.  If not, we cannot create a user
+        let group = (await pgclient.query(queries.getGroupTableQuery(groupId))).rows[0];
+        if (!group) {
+            return next(new Error("Could not find a group for the provided id.", 404));
+        }
+
+        // Obtain the maximum id for a user to generate a new id (*see note in function comment header)
         newUserId = parseInt((await pgclient.query(queries.getNewIdTableQuery('users'))).rows[0].id) + 1;
-        group = (await pgclient.query(queries.getGroupTableQuery(groupId))).rows[0];
-    } catch (e) {
-        const error = new Error('Failed to access database, please try again at a later time', 500);
-        return next (error);
-    }
 
-    // If the group specified doesn't exist, we cannot create a user
-    if (!group) {
-        const error = new Error("Could not find a group for the provided id.", 404);
-        return next (error);
-    }
-
-    // Create a user
-    try {
+        // Create a user
         await pgclient.query(queries.createUserTableQuery(newUserId, name, role, groupId));
     } catch (e) {
-        const error = new Error('Failed to access database, please try again at a later time', 500);
-        return next (error);
+        return next(new Error('Failed to access database, please try again at a later time', 500));
     }
     
     res.status(201).json({ id: newUserId });
@@ -94,40 +83,25 @@ const deleteUser = async (req, res, next) => {
     const { userId } = req.params;
     const { fullDelete } = req.query;
 
-    let user;
     try {
-        user = (await pgclient.query(queries.getUserTableQuery(userId))).rows[0];
-    } catch (e) {
-        const error = new Error('Failed to access database, please try again at a later time', 500);
-        return next (error);
-    }
-
-    if (!user) {
-        const error = new Error("Could not find a user for the provided id.", 404);
-        return next (error);
-    }
-
-    if (fullDelete.toLowerCase() != 'true') {
-        // Check the user's sales records.  If any exist, this request might be a mistake.  (* see note in function header comment)
-        let sales;
-        try {
-            sales = (await pgclient.query(queries.getSalesByUserTableQuery(userId, 1))).rows;
-        } catch (e) {
-            const error = new Error(`Failed to access database, please try again at a later time`, 500);
-            return next (error);
+        // Check if user exists
+        let user = (await pgclient.query(queries.getUserTableQuery(userId))).rows[0];
+        if (!user) {
+            return next(new Error("Could not find a user for the provided id.", 404));
         }
-    
-        if (sales && sales.length > 0) {
-            const error = new Error("This user has sales records.  Set the 'fullDelete' query parameter to true if this user should still be deleted, along with those records.", 417);
-            return next (error);
+        
+        if (fullDelete.toLowerCase() != 'true') {
+            // Check the user's sales records.  If any exist, this request might be a mistake.  (* see note in function header comment)
+            let sales = (await pgclient.query(queries.getSalesByUserTableQuery(userId, 1))).rows;
+            if (sales && sales.length > 0) {
+                return next(new Error("This user has sales records.  Set the 'fullDelete' query parameter to true if this user should still be deleted, along with those records.", 417));
+            }
         }
-    }
 
-    try {
+        // Delete the user
         await pgclient.query(queries.deleteUserTableQuery(userId));
     } catch (e) {
-        const error = new Error('Failed to access database, please try again at a later time', 500);
-        return next (error);
+        return next(new Error('Failed to access database, please try again at a later time', 500));
     }
     
     res.status(204).json({});
