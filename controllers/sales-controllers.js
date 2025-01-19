@@ -92,7 +92,7 @@ const createSale = async (req, res, next) => {
     let user;
     let newSaleId;
     try {
-        user = await pgclient.query(queries.getUserTableQuery(userId));
+        user = (await pgclient.query(queries.getUserTableQuery(userId))).rows[0];
         newSaleId = parseInt((await pgclient.query(queries.getNewIdTableQuery('sales'))).rows[0].id) + 1;
     } catch (e) {
         const error = new Error('Failed to access database, please try again at a later time', 500);

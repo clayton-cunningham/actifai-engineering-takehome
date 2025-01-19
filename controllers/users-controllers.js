@@ -62,7 +62,7 @@ const createUser = async (req, res, next) => {
     let group;
     try {
         newUserId = parseInt((await pgclient.query(queries.getNewIdTableQuery('users'))).rows[0].id) + 1;
-        group = await pgclient.query(queries.getGroupTableQuery(groupId));
+        group = (await pgclient.query(queries.getGroupTableQuery(groupId))).rows[0];
     } catch (e) {
         const error = new Error('Failed to access database, please try again at a later time', 500);
         return next (error);
