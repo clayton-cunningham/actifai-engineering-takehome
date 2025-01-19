@@ -90,7 +90,7 @@ const deleteUser = async (req, res, next) => {
             return next(new Error("Could not find a user for the provided id.", 404));
         }
         
-        if (fullDelete.toLowerCase() != 'true') {
+        if (fullDelete && fullDelete.toLowerCase() != 'true') {
             // Check the user's sales records.  If any exist, this request might be a mistake.  (* see note in function header comment)
             let sales = (await pgclient.query(queries.getSalesByUserTableQuery(userId, 1))).rows;
             if (sales && sales.length > 0) {

@@ -69,11 +69,13 @@ const getRevenueByUser = async (req, res, next) => {
  * @param {role}                query Optional - additional filter, to only aggregate on users with a specific role
  * @param {sortBy}              query Optional - the field to sort by (default: month)
  * @param {sortDirection}       query Optional - the direction to sort in (default: ASC)
+ * @param {getUserInfo}         query Optional - if true, returns information for each user, within the entry for each month
  */
 const getRevenueByGroup = async (req, res, next) => {
-    const { fromMonth, fromYear, toMonth, toYear } = req.query;
-    let { groupId, role, sortBy, sortDirection } = req.query;
+    const { fromMonth, fromYear, toMonth, toYear, groupId, role, getUserInfo } = req.query;
+    let { sortBy, sortDirection } = req.query;
 
+    // Validate the query parameters
     if (!fromMonth || !fromYear || !toMonth || !toYear) {
         return next(new Error("Please add appropriate to and from dates, with a month and a year.", 400));
     }
@@ -102,14 +104,28 @@ const getRevenueByGroup = async (req, res, next) => {
 
     let revenue;
     try {
-        revenue = (await pgclient.query(queries.getRevenueByGroupTableQueryRange(fromMonth, fromYear, toMonth, toYear, groupId, role, sortBy, sortDirection))).rows;
+        // Aggregate the revenue
+        revenue = (await pgclient.query(queries.getRevenueTableQuery(fromMonth, fromYear, toMonth, toYear, groupId, role, sortBy, sortDirection))).rows;
+
+        if (getUserInfo && getUserInfo.toLowerCase() == "true") {
+            // Retrieve info specific to each user, and add them in the appropriate month.
+            // Note - this will sort on the same field as the month aggregation for the group/role
+            let userInfo = (await pgclient.query(queries.getRevenueForUsersTableQuery(fromMonth, fromYear, toMonth, toYear, groupId, role, sortBy, sortDirection))).rows;
+
+            userInfo.forEach(u => {
+                let revenueMonth = revenue.find(r => r.month == u.month);
+                revenueMonth.users = revenueMonth.users || [];
+                revenueMonth.users.push(u);
+            })
+        }
     } catch (e) {
+        console.log(e)
         const error = new Error('Failed to retrieve revenue, please try again at a later time', 500);
         return next(error);
     }
 
-    if (!revenue) {
-        const error = new Error("Could not find any revenue for the provided id.", 404);
+    if (!revenue || revenue.length == 0) {
+        const error = new Error("Could not find any revenue for the provided filters.", 404);
         return next(error);
     }
 

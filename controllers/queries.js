@@ -19,10 +19,12 @@ const getUsersByGroupAndRoleTableQuery = (groupId, role) => `SELECT user_id
                                                                 INNER JOIN users as Users 
                                                                     ON Groups.user_id = Users.id
                                                                 WHERE (group_id = '${groupId}' AND role = '${role}')`;
-const getUsersByGroupAndRoleQuery = (groupId, role) => `${groupId ? role ? `${getUsersByGroupAndRoleTableQuery(groupId, role)}` // Group and role
-                                                                         : `${getUsersByGroupTableQuery(groupId)}`              // Group
-                                                                  : role ? `${getUsersByRoleTableQuery(role)}`                  // Role
-                                                                         : "SELECT id as user_id FROM users" }`;                // Neither
+const getUsersByGroupAndRoleQuery = (groupId, role) => `SELECT id as user_id, name FROM users as Users
+                                                            ${groupId ? `INNER JOIN user_groups as Groups ON Groups.user_id = Users.id` : ""}
+                                                            ${groupId ? role ? `WHERE (group_id = '${groupId}' AND role = '${role}')`   // Group and role
+                                                                             : `WHERE group_id = '${groupId}'`                          // Group
+                                                                      : role ? `WHERE role = '${role}'`                                 // Role
+                                                                             : "" }`;                                                   // Neither
 const removeUserTableQuery =             (userId)        => `DELETE FROM users       WHERE id =      '${userId}'`;
 const removeUserFromGroupTableQuery =    (userId)        => `DELETE FROM user_groups WHERE user_id = '${userId}'`;
 const removeUserSalesTableQuery =        (userId)        => `DELETE FROM sales       WHERE user_id = '${userId}'`;
@@ -81,7 +83,7 @@ const getRevenueByUserTableQuery =     (userId, fromMonth, fromYear, toMonth, to
                                                         WHERE user_id = '${userId}'
                                                         GROUP BY ${getMonthYearFromDate}
                                                         ORDER BY ${sortBy} ${sortDirection}`;
-const getRevenueByGroupTableQueryRange =    (fromMonth, fromYear, toMonth, toYear, groupId, role, sortBy, sortDirection)   => 
+const getRevenueTableQuery =    (fromMonth, fromYear, toMonth, toYear, groupId, role, sortBy, sortDirection)   => 
                                                         `SELECT 
                                                             ${getMonthYearFromDate} as month,
                                                             SUM(amount) as totalSaleRevenue, 
@@ -91,6 +93,19 @@ const getRevenueByGroupTableQueryRange =    (fromMonth, fromYear, toMonth, toYea
                                                         INNER JOIN (${getUsersByGroupAndRoleQuery(groupId, role)}) as Users 
                                                             ON Sales.user_id = Users.user_id 
                                                         GROUP BY ${getMonthYearFromDate}
+                                                        ORDER BY ${sortBy} ${sortDirection}`;
+const getRevenueForUsersTableQuery =    (fromMonth, fromYear, toMonth, toYear, groupId, role, sortBy, sortDirection)   => 
+                                                        `SELECT 
+                                                            Sales.user_id,
+                                                            Users.name,
+                                                            ${getMonthYearFromDate} as month,
+                                                            SUM(amount) as totalSaleRevenue, 
+                                                            COUNT(*) as numberOfSales,
+                                                            ${getAverage} as averageRevenueBySales
+                                                        FROM (${filterByMonthYearRange(fromMonth, fromYear, toMonth, toYear)}) Sales 
+                                                        INNER JOIN (${getUsersByGroupAndRoleQuery(groupId, role)}) as Users 
+                                                            ON Sales.user_id = Users.user_id 
+                                                        GROUP BY ${getMonthYearFromDate}, Sales.user_id, Users.name
                                                         ORDER BY ${sortBy} ${sortDirection}`;
 
 module.exports = {
@@ -109,5 +124,6 @@ module.exports = {
     getGroupTableQuery,
     getNewIdTableQuery,
     getRevenueByUserTableQuery,
-    getRevenueByGroupTableQueryRange
+    getRevenueTableQuery,
+    getRevenueForUsersTableQuery
 }
