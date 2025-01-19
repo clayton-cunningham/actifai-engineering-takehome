@@ -147,8 +147,8 @@ const getRevenue = async (req, res, next) => {
  * @param {fromYear}    query The first year to include
  * @param {toMonth}     query The last month to include
  * @param {toYear}      query The last year to include
- * @param {groupIds}             body  Optional - additional filter, to only aggregate on users of specific groups
- * @param {roles}                body  Optional - additional filter, to only aggregate on users with specific roles
+ * @param {groupIds}            body  Optional - additional filter, to only aggregate on users of specific groups
+ * @param {roles}               body  Optional - additional filter, to only aggregate on users with specific roles
  * @param {sortBy}              query Optional - the field to sort by (default: month)
  * @param {sortDirection}       query Optional - the direction to sort in (default: ASC)
  * @param {getUserInfo}         query Optional - if true, returns information for each user, within the entry for each month
