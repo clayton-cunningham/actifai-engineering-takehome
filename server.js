@@ -33,7 +33,7 @@ async function start() {
   app.use("/revenue", revenueRoutes)
 
   app.use((req, res, next) => {
-      const error = new Error('Route does not exist', 404);
+      const error = new HttpError('Route does not exist', 404);
       throw error;
   });
 

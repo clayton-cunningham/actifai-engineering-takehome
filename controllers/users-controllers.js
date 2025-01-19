@@ -3,6 +3,7 @@
 const { Client } = require('pg');
 const queries = require("./queries");
 const { validationResult } = require('express-validator');
+const HttpError = require('../models/http-error');
 
 const pgclient = new Client({
     host: 'db',
@@ -25,11 +26,11 @@ const getUserById = async (req, res, next) => {
     try {
         user = (await pgclient.query(queries.getUserTableQuery(userId))).rows[0];
     } catch (e) {
-        return next(new Error('Failed to retrieve a user, please try again at a later time', 500));
+        return next(new HttpError('Failed to retrieve a user, please try again at a later time', 500));
     }
 
     if (!user) {
-        return next(new Error("Could not find a user for the provided id.", 404));
+        return next(new HttpError("Could not find a user for the provided id.", 404));
     }
 
     res.json({ user });
@@ -49,7 +50,7 @@ const createUser = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         console.log(errors);
-        return next(new Error("Invalid input.", 422));
+        return next(new HttpError("Invalid input.", 422));
     }
 
     const { name, role, groupId } = req.body;
@@ -59,7 +60,7 @@ const createUser = async (req, res, next) => {
         // Check that the group exists.  If not, we cannot create a user
         let group = (await pgclient.query(queries.getGroupTableQuery(groupId))).rows[0];
         if (!group) {
-            return next(new Error("Could not find a group for the provided id.", 404));
+            return next(new HttpError("Could not find a group for the provided id.", 404));
         }
 
         // Obtain the maximum id for a user to generate a new id (*see note in function comment header)
@@ -68,7 +69,7 @@ const createUser = async (req, res, next) => {
         // Create a user
         await pgclient.query(queries.createUserQuery(newUserId, name, role, groupId));
     } catch (e) {
-        return next(new Error('Failed to access database, please try again at a later time', 500));
+        return next(new HttpError('Failed to access database, please try again at a later time', 500));
     }
     
     res.status(201).json({ id: newUserId });
@@ -87,21 +88,21 @@ const deleteUser = async (req, res, next) => {
         // Check if user exists
         let user = (await pgclient.query(queries.getUserTableQuery(userId))).rows[0];
         if (!user) {
-            return next(new Error("Could not find a user for the provided id.", 404));
+            return next(new HttpError("Could not find a user for the provided id.", 404));
         }
         
-        if (fullDelete && fullDelete.toLowerCase() != 'true') {
+        if (!fullDelete || fullDelete.toLowerCase() != 'true') {
             // Check the user's sales records.  If any exist, this request might be a mistake.  (* see note in function header comment)
             let sales = (await pgclient.query(queries.getSalesByUserTableQuery(userId, 1))).rows;
             if (sales && sales.length > 0) {
-                return next(new Error("This user has sales records.  Set the 'fullDelete' query parameter to true if this user should still be deleted, along with those records.", 417));
+                return next(new HttpError("This user has sales records.  Set the 'fullDelete' query parameter to true if this user should still be deleted, along with those records.", 417));
             }
         }
 
         // Delete the user
         await pgclient.query(queries.deleteUserTableQuery(userId));
     } catch (e) {
-        return next(new Error('Failed to access database, please try again at a later time', 500));
+        return next(new HttpError('Failed to access database, please try again at a later time', 500));
     }
     
     res.status(204).json({});
@@ -120,7 +121,7 @@ const editUser = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         console.log(errors);
-        return next(new Error("Invalid input.", 422));
+        return next(new HttpError("Invalid input.", 422));
     }
 
     const { name, role, groupId } = req.body;
@@ -129,21 +130,21 @@ const editUser = async (req, res, next) => {
         // Check if user exists
         let user = (await pgclient.query(queries.getUserTableQuery(userId))).rows[0];
         if (!user) {
-            return next(new Error("Could not find a user for the provided id.", 404));
+            return next(new HttpError("Could not find a user for the provided id.", 404));
         }
 
         if (groupId) {
             // If the user is being moved to a different group, check that the group exists.
             let group = (await pgclient.query(queries.getGroupTableQuery(groupId))).rows[0];
             if (!group) {
-                return next(new Error("Could not find a group for the provided id.", 404));
+                return next(new HttpError("Could not find a group for the provided id.", 404));
             }
         }
 
         // Create a user
         await pgclient.query(queries.editUserQuery(userId, name, role, groupId));
     } catch (e) {
-        return next(new Error('Failed to access database, please try again at a later time', 500));
+        return next(new HttpError('Failed to access database, please try again at a later time', 500));
     }
     
     res.status(204).json({});

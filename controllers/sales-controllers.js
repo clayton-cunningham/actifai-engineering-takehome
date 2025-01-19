@@ -3,6 +3,7 @@
 const { Client } = require('pg');
 const queries = require("./queries");
 const { validationResult } = require('express-validator');
+const HttpError = require('../models/http-error');
 
 const pgclient = new Client({
     host: 'db',
@@ -25,11 +26,11 @@ const getSaleById = async (req, res, next) => {
     try {
         sale = (await pgclient.query(queries.getSaleTableQuery(saleId))).rows[0];
     } catch (e) {
-        return next(new Error('Failed to retrieve a sale, please try again at a later time', 500));
+        return next(new HttpError('Failed to retrieve a sale, please try again at a later time', 500));
     }
 
     if (!sale) {
-        return next(new Error("Could not find a sale for the provided id.", 404));
+        return next(new HttpError("Could not find a sale for the provided id.", 404));
     }
 
     res.json({ sale });
@@ -55,11 +56,11 @@ const getSalesByUserId = async (req, res, next) => {
     try {
         sales = (await pgclient.query(queries.getSalesByUserTableQuery(userId, limit))).rows;
     } catch (e) {
-        return next(new Error(`Failed to retrieve a user's sales, please try again at a later time`, 500));
+        return next(new HttpError(`Failed to retrieve a user's sales, please try again at a later time`, 500));
     }
 
     if (!sales || sales.length == 0) {
-        return next(new Error("Could not find any sales for the provided id.", 404));
+        return next(new HttpError("Could not find any sales for the provided id.", 404));
     }
 
     res.json({ sales });
@@ -78,7 +79,7 @@ const createSale = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         console.log(errors);
-        return next(new Error("Invalid input.", 422));
+        return next(new HttpError("Invalid input.", 422));
     }
 
     const { userId, amount, date } = req.body;
@@ -88,7 +89,7 @@ const createSale = async (req, res, next) => {
         // Obtain the user to confirm they exist. If not, we cannot create a sale
         let user = (await pgclient.query(queries.getUserTableQuery(userId))).rows[0];
         if (!user) {
-            return next(new Error("Could not find a user for the provided id.", 404));
+            return next(new HttpError("Could not find a user for the provided id.", 404));
         }
 
         // Obtain the maximum id for a sale to generate a new id (*see note in function comment header)
@@ -97,7 +98,7 @@ const createSale = async (req, res, next) => {
         // Create a sale
         await pgclient.query(queries.createSaleTableQuery(newSaleId, userId, amount, date));
     } catch (e) {
-        return next(new Error('Failed to access database, please try again at a later time', 500));
+        return next(new HttpError('Failed to access database, please try again at a later time', 500));
     }
     
     res.status(201).json({ id: newSaleId });
@@ -114,13 +115,13 @@ const deleteSale = async (req, res, next) => {
         // Check if the sale exists
         let sale = (await pgclient.query(queries.getSaleTableQuery(saleId))).rows[0];
         if (!sale) {
-            return next(new Error("Could not find a sale for the provided id.", 404));
+            return next(new HttpError("Could not find a sale for the provided id.", 404));
         }
 
         // Delete the sale
         await pgclient.query(queries.deleteSaleTableQuery(saleId));
     } catch (e) {
-        return next(new Error('Failed to access database, please try again at a later time', 500));
+        return next(new HttpError('Failed to access database, please try again at a later time', 500));
     }
     
     res.status(204).json({});

@@ -3,6 +3,7 @@
 const { Client } = require('pg');
 const queries = require("./queries");
 const { validationResult } = require('express-validator');
+const HttpError = require('../models/http-error');
 
 const pgclient = new Client({
     host: 'db',
@@ -25,11 +26,11 @@ const getGroupById = async (req, res, next) => {
     try {
         group = (await pgclient.query(queries.getGroupTableQuery(groupId))).rows[0];
     } catch (e) {
-        return next(new Error('Failed to retrieve a group, please try again at a later time', 500));
+        return next(new HttpError('Failed to retrieve a group, please try again at a later time', 500));
     }
 
     if (!group) {
-        return next(new Error("Could not find a group for the provided id.", 404));
+        return next(new HttpError("Could not find a group for the provided id.", 404));
     }
 
     res.json({ group });
@@ -46,7 +47,7 @@ const createGroup = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         console.log(errors);
-        return next(new Error("Invalid input.", 422));
+        return next(new HttpError("Invalid input.", 422));
     }
 
     const { groupName } = req.body;
@@ -59,7 +60,7 @@ const createGroup = async (req, res, next) => {
         // Create a group
         await pgclient.query(queries.createGroupTableQuery(newGroupId, groupName));
     } catch (e) {
-        return next(new Error('Failed to access database, please try again at a later time', 500));
+        return next(new HttpError('Failed to access database, please try again at a later time', 500));
     }
     
     res.status(201).json({ id: newGroupId });
@@ -76,19 +77,19 @@ const deleteGroup = async (req, res, next) => {
         // Check if the group exists
         let group = (await pgclient.query(queries.getGroupTableQuery(groupId))).rows[0];
         if (!group) {
-            return next(new Error("Could not find a group for the provided id.", 404));
+            return next(new HttpError("Could not find a group for the provided id.", 404));
         }
 
         // Check for users in the group.  If any exist, we do not allow the group to be deleted.
         let users = (await pgclient.query(queries.getUsersByGroupTableQuery(groupId))).rows;
         if (users && users.length > 0) {
-            return next(new Error("This group has users.  Please delete those users or move them to other groups first.", 417));
+            return next(new HttpError("This group has users.  Please delete those users or move them to other groups first.", 417));
         }
 
         // Delete the group
         await pgclient.query(queries.deleteGroupTableQuery(groupId));
     } catch (e) {
-        return next(new Error('Failed to access database, please try again at a later time', 500));
+        return next(new HttpError('Failed to access database, please try again at a later time', 500));
     }
     
     res.status(204).json({});

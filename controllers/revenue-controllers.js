@@ -2,6 +2,7 @@
 
 const { Client } = require('pg');
 const queries = require("./queries");
+const HttpError = require('../models/http-error');
 
 const pgclient = new Client({
     host: 'db',
@@ -31,28 +32,28 @@ const getRevenueByUser = async (req, res, next) => {
     let { sortBy, sortDirection } = req.query;
 
     if (!fromMonth || !fromYear || !toMonth || !toYear) {
-        const error = new Error("Please add appropriate to and from dates, with a month and a year.", 400);
+        const error = new HttpError("Please add appropriate to and from dates, with a month and a year.", 400);
         return next(error);
     }
     if (!sortBy) sortBy = 'month';
     else if (sortOptions.find(s => s == sortBy.toLowerCase()) == undefined) {
-        return next(new Error("Input sortBy is not supported.  Please use one of the following: " + sortOptions.toString(), 400));
+        return next(new HttpError("Input sortBy is not supported.  Please use one of the following: " + sortOptions.toString(), 400));
     }
     if (!sortDirection) sortDirection = 'ASC';
     else if (sortDirection.toUpperCase() != 'DESC' && sortDirection.toUpperCase() != 'ASC') {
-        return next(new Error("Input sortDirection is not supported.  Please use ASC or DESC.", 400));
+        return next(new HttpError("Input sortDirection is not supported.  Please use ASC or DESC.", 400));
     }
 
     let revenue;
     try {
         revenue = (await pgclient.query(queries.getRevenueByUserTableQuery(userId, fromMonth, fromYear, toMonth, toYear, sortBy, sortDirection))).rows;
     } catch (e) {
-        const error = new Error('Failed to retrieve revenue, please try again at a later time', 500);
+        const error = new HttpError('Failed to retrieve revenue, please try again at a later time', 500);
         return next(error);
     }
 
     if (!revenue) {
-        const error = new Error("Could not find any revenue for the provided id.", 404);
+        const error = new HttpError("Could not find any revenue for the provided id.", 404);
         return next(error);
     }
 
@@ -78,15 +79,15 @@ const getRevenue = async (req, res, next) => {
 
     // Validate the query parameters
     if (!fromMonth || !fromYear || !toMonth || !toYear) {
-        return next(new Error("Please add appropriate to and from dates, with a month and a year.", 400));
+        return next(new HttpError("Please add appropriate to and from dates, with a month and a year.", 400));
     }
     if (!sortBy) sortBy = 'month';
     else if (sortOptions.find(s => s == sortBy.toLowerCase()) == undefined) {
-        return next(new Error("Input sortBy is not supported.  Please use one of the following: " + sortOptions.toString(), 400));
+        return next(new HttpError("Input sortBy is not supported.  Please use one of the following: " + sortOptions.toString(), 400));
     }
     if (!sortDirection) sortDirection = 'ASC';
     else if (sortDirection.toUpperCase() != 'DESC' && sortDirection.toUpperCase() != 'ASC') {
-        return next(new Error("Input sortDirection is not supported.  Please use ASC or DESC.", 400));
+        return next(new HttpError("Input sortDirection is not supported.  Please use ASC or DESC.", 400));
     }
 
     let revenue;
@@ -96,7 +97,7 @@ const getRevenue = async (req, res, next) => {
             // Check that this group exists
             let group = (await pgclient.query(queries.getGroupTableQuery(groupId))).rows[0];
             if (!group) {
-                return next(new Error("Could not find a group for the provided id.", 404));
+                return next(new HttpError("Could not find a group for the provided id.", 404));
             }
             groupIds = [];
             groupIds.push(groupId);
@@ -106,7 +107,7 @@ const getRevenue = async (req, res, next) => {
             // Check that this role exists
             let usersForRole = (await pgclient.query(queries.getUsersByRoleTableQuery(role))).rows;
             if (!usersForRole || usersForRole.length == 0) {
-                return next(new Error("Could not find any users with the provided role.", 404));
+                return next(new HttpError("Could not find any users with the provided role.", 404));
             }
             roles = [];
             roles.push(`'${role}'`)
@@ -127,12 +128,12 @@ const getRevenue = async (req, res, next) => {
             })
         }
     } catch (e) {
-        const error = new Error('Failed to retrieve revenue, please try again at a later time', 500);
+        const error = new HttpError('Failed to retrieve revenue, please try again at a later time', 500);
         return next(error);
     }
 
     if (!revenue || revenue.length == 0) {
-        const error = new Error("Could not find any revenue for the provided filters.", 404);
+        const error = new HttpError("Could not find any revenue for the provided filters.", 404);
         return next(error);
     }
 
@@ -159,15 +160,15 @@ const revenuePostQuery = async (req, res, next) => {
 
     // Validate the query parameters
     if (!fromMonth || !fromYear || !toMonth || !toYear) {
-        return next(new Error("Please add appropriate to and from dates, with a month and a year.", 400));
+        return next(new HttpError("Please add appropriate to and from dates, with a month and a year.", 400));
     }
     if (!sortBy) sortBy = 'month';
     else if (sortOptions.find(s => s == sortBy.toLowerCase()) == undefined) {
-        return next(new Error("Input sortBy is not supported.  Please use one of the following: " + sortOptions.toString(), 400));
+        return next(new HttpError("Input sortBy is not supported.  Please use one of the following: " + sortOptions.toString(), 400));
     }
     if (!sortDirection) sortDirection = 'ASC';
     else if (sortDirection.toUpperCase() != 'DESC' && sortDirection.toUpperCase() != 'ASC') {
-        return next(new Error("Input sortDirection is not supported.  Please use ASC or DESC.", 400));
+        return next(new HttpError("Input sortDirection is not supported.  Please use ASC or DESC.", 400));
     }
 
     let revenue;
@@ -176,7 +177,7 @@ const revenuePostQuery = async (req, res, next) => {
             // Check that this group exists
             let group = (await pgclient.query(queries.getGroupsTableQuery(groupIds))).rows[0];
             if (!group) {
-                return next(new Error("Could not find any groups for the provided ids.", 404));
+                return next(new HttpError("Could not find any groups for the provided ids.", 404));
             }
         }
         if (roles) {
@@ -184,7 +185,7 @@ const revenuePostQuery = async (req, res, next) => {
             roles = roles.map(r => `'${r}'`);
             let usersForRole = (await pgclient.query(queries.getUsersByRolesTableQuery(roles))).rows;
             if (!usersForRole || usersForRole.length == 0) {
-                return next(new Error("Could not find any users with the provided roles.", 404));
+                return next(new HttpError("Could not find any users with the provided roles.", 404));
             }
         }
 
@@ -203,12 +204,12 @@ const revenuePostQuery = async (req, res, next) => {
             })
         }
     } catch (e) {
-        const error = new Error('Failed to retrieve revenue, please try again at a later time', 500);
+        const error = new HttpError('Failed to retrieve revenue, please try again at a later time', 500);
         return next(error);
     }
 
     if (!revenue || revenue.length == 0) {
-        const error = new Error("Could not find any revenue for the provided filters.", 404);
+        const error = new HttpError("Could not find any revenue for the provided filters.", 404);
         return next(error);
     }
 
