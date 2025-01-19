@@ -119,7 +119,7 @@ const getRevenue = async (req, res, next) => {
         if (getUserInfo && getUserInfo.toLowerCase() == "true") {
             // Retrieve info specific to each user, and add them in the appropriate month.
             // Note - this will sort on the same field as the month aggregation for the group/role
-            let userInfo = (await pgclient.query(queries.getRevenueForUsersTableQuery(fromMonth, fromYear, toMonth, toYear, groupIds, roles, sortBy, sortDirection))).rows;
+            let userInfo = (await pgclient.query(queries.getRevenueTableQuery(fromMonth, fromYear, toMonth, toYear, groupIds, roles, sortBy, sortDirection, true))).rows;
 
             userInfo.forEach(u => {
                 let revenueMonth = revenue.find(r => r.month == u.month);
@@ -195,7 +195,7 @@ const revenuePostQuery = async (req, res, next) => {
         if (getUserInfo && getUserInfo.toLowerCase() == "true") {
             // Retrieve info specific to each user, and add them in the appropriate month.
             // Note - this will sort on the same field as the month aggregation for the group/role
-            let userInfo = (await pgclient.query(queries.getRevenueForUsersTableQuery(fromMonth, fromYear, toMonth, toYear, groupIds, roles, sortBy, sortDirection))).rows;
+            let userInfo = (await pgclient.query(queries.getRevenueTableQuery(fromMonth, fromYear, toMonth, toYear, groupIds, roles, sortBy, sortDirection, true))).rows;
 
             userInfo.forEach(u => {
                 let revenueMonth = revenue.find(r => r.month == u.month);

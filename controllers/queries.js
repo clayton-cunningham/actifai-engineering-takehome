@@ -80,8 +80,9 @@ const getRevenueByUserTableQuery =     (userId, fromMonth, fromYear, toMonth, to
                                                         WHERE user_id = '${userId}'
                                                         GROUP BY ${getMonthYearFromDate}
                                                         ORDER BY ${sortBy} ${sortDirection}`;
-const getRevenueTableQuery =    (fromMonth, fromYear, toMonth, toYear, groupIds, roles, sortBy, sortDirection)   => 
+const getRevenueTableQuery =    (fromMonth, fromYear, toMonth, toYear, groupIds, roles, sortBy, sortDirection, groupByUsers)   => 
                                                         `SELECT 
+                                                            ${groupByUsers ? `Sales.user_id, Users.name,` : ""}
                                                             ${getMonthYearFromDate} as month,
                                                             SUM(amount) as totalSaleRevenue, 
                                                             COUNT(*) as numberOfSales,
@@ -89,21 +90,21 @@ const getRevenueTableQuery =    (fromMonth, fromYear, toMonth, toYear, groupIds,
                                                         FROM (${filterByMonthYearRange(fromMonth, fromYear, toMonth, toYear)}) Sales 
                                                         INNER JOIN (${getUsersByGroupsAndRolesQuery(groupIds, roles)}) as Users 
                                                             ON Sales.user_id = Users.user_id 
-                                                        GROUP BY ${getMonthYearFromDate}
+                                                        GROUP BY ${getMonthYearFromDate} ${groupByUsers ? `, Sales.user_id, Users.name` : ""}
                                                         ORDER BY ${sortBy} ${sortDirection}`;
-const getRevenueForUsersTableQuery =    (fromMonth, fromYear, toMonth, toYear, groupIds, roles, sortBy, sortDirection)   => 
-                                                        `SELECT 
-                                                            Sales.user_id,
-                                                            Users.name,
-                                                            ${getMonthYearFromDate} as month,
-                                                            SUM(amount) as totalSaleRevenue, 
-                                                            COUNT(*) as numberOfSales,
-                                                            ${getAverage} as averageRevenueBySales
-                                                        FROM (${filterByMonthYearRange(fromMonth, fromYear, toMonth, toYear)}) Sales 
-                                                        INNER JOIN (${getUsersByGroupsAndRolesQuery(groupIds, roles)}) as Users 
-                                                            ON Sales.user_id = Users.user_id 
-                                                        GROUP BY ${getMonthYearFromDate}, Sales.user_id, Users.name
-                                                        ORDER BY ${sortBy} ${sortDirection}`;
+// const getRevenueForUsersTableQuery =    (fromMonth, fromYear, toMonth, toYear, groupIds, roles, sortBy, sortDirection)   => 
+//                                                         `SELECT 
+//                                                             Sales.user_id,
+//                                                             Users.name,
+//                                                             ${getMonthYearFromDate} as month,
+//                                                             SUM(amount) as totalSaleRevenue, 
+//                                                             COUNT(*) as numberOfSales,
+//                                                             ${getAverage} as averageRevenueBySales
+//                                                         FROM (${filterByMonthYearRange(fromMonth, fromYear, toMonth, toYear)}) Sales 
+//                                                         INNER JOIN (${getUsersByGroupsAndRolesQuery(groupIds, roles)}) as Users 
+//                                                             ON Sales.user_id = Users.user_id 
+//                                                         GROUP BY ${getMonthYearFromDate}, Sales.user_id, Users.name
+//                                                         ORDER BY ${sortBy} ${sortDirection}`;
 
 module.exports = {
     getSaleTableQuery,
@@ -123,6 +124,5 @@ module.exports = {
     createGroupTableQuery,
     getNewIdTableQuery,
     getRevenueByUserTableQuery,
-    getRevenueTableQuery,
-    getRevenueForUsersTableQuery
+    getRevenueTableQuery
 }
