@@ -39,7 +39,7 @@ const getUserById = async (req, res, next) => {
  * Creates a user record
  *  * Note: we currently generate an id, but we may want to require a user id to be input for consistency with other records external to this system.
  *    Note 2 - we check if the group exist, but not if the user already exists.  We may want to add this in the future (i.e. if we can assume a user's full name will be unique)
- * @param {name}    body The user's name'
+ * @param {name}    body The user's name
  * @param {role}    body The user's role
  * @param {groupId} body The user group to add this user to
  */
@@ -66,7 +66,7 @@ const createUser = async (req, res, next) => {
         newUserId = parseInt((await pgclient.query(queries.getNewIdTableQuery('users'))).rows[0].id) + 1;
 
         // Create a user
-        await pgclient.query(queries.createUserTableQuery(newUserId, name, role, groupId));
+        await pgclient.query(queries.createUserQuery(newUserId, name, role, groupId));
     } catch (e) {
         return next(new Error('Failed to access database, please try again at a later time', 500));
     }
@@ -107,8 +107,51 @@ const deleteUser = async (req, res, next) => {
     res.status(204).json({});
 }
 
+/**
+ * Edit a user record
+ * @param {name}    body The user's name
+ * @param {role}    body The user's role
+ * @param {groupId} body The user group to add this user to
+ */
+const editUser = async (req, res, next) => {
+    const { userId } = req.params;
+    
+    // Check input arguments for validity
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        console.log(errors);
+        return next(new Error("Invalid input.", 422));
+    }
+
+    const { name, role, groupId } = req.body;
+
+    try {
+        // Check if user exists
+        let user = (await pgclient.query(queries.getUserTableQuery(userId))).rows[0];
+        if (!user) {
+            return next(new Error("Could not find a user for the provided id.", 404));
+        }
+
+        if (groupId) {
+            // If the user is being moved to a different group, check that the group exists.
+            let group = (await pgclient.query(queries.getGroupTableQuery(groupId))).rows[0];
+            if (!group) {
+                return next(new Error("Could not find a group for the provided id.", 404));
+            }
+        }
+
+        // Create a user
+        await pgclient.query(queries.editUserQuery(userId, name, role, groupId));
+    } catch (e) {
+        return next(new Error('Failed to access database, please try again at a later time', 500));
+    }
+    
+    res.status(204).json({});
+}
+
 module.exports = {
     getUserById,
     createUser,
-    deleteUser
+    deleteUser,
+    editUser
 }

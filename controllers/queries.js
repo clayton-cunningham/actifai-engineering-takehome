@@ -28,9 +28,20 @@ const deleteUserTableQuery =             (userId)        => `BEGIN TRANSACTION;
                                                                COMMIT;`;
 const addUserTableQuery =                (userId, name, role)          => `INSERT INTO users       (id, name, role)    VALUES (${userId}, '${name}', '${role}')`;
 const addUserToGroupTableQuery =         (userId, groupId)             => `INSERT INTO user_groups (user_id, group_id) VALUES (${userId}, '${groupId}')`;
-const createUserTableQuery =             (userId, name, role, groupId) => `BEGIN TRANSACTION;
+const createUserQuery =             (userId, name, role, groupId) => `BEGIN TRANSACTION;
                                                                              ${addUserTableQuery(userId, name, role)};
                                                                              ${addUserToGroupTableQuery(userId, groupId)};
+                                                                           COMMIT;`;
+const editUserTableQuery =               (userId, name, role)          => `UPDATE users
+                                                                             SET
+                                                                                ${name ? ` name = '${name}'` : ""}
+                                                                                ${name && role ? "," : ""}
+                                                                                ${role ? ` role = '${role}'` : ""}
+                                                                             WHERE id = '${userId}'`;
+const editUserGroupTableQuery =          (userId, groupId)             => `UPDATE user_groups SET group_id = ${groupId} WHERE user_id = ${userId}`;
+const editUserQuery =                    (userId, name, role, groupId) => `BEGIN TRANSACTION;
+                                                                             ${name || role ? `${editUserTableQuery(userId, name, role)};` : ""}
+                                                                             ${groupId ? `${editUserGroupTableQuery(userId, groupId)};` : ""}
                                                                            COMMIT;`;
 
 
@@ -85,7 +96,8 @@ module.exports = {
     getUserTableQuery,
     getUsersByGroupTableQuery,
     deleteUserTableQuery,
-    createUserTableQuery,
+    createUserQuery,
+    editUserQuery,
     deleteGroupTableQuery,
     createGroupTableQuery,
     getGroupTableQuery,
