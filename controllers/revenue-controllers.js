@@ -34,8 +34,14 @@ const getRevenueByUser = async (req, res, next) => {
         const error = new Error("Please add appropriate to and from dates, with a month and a year.", 400);
         return next(error);
     }
-    if (!sortBy || sortOptions.find(s => s == sortBy) == undefined) sortBy = 'month';
-    if (!sortDirection || sortDirection != 'DESC' && sortDirection != 'ASC') sortDirection = 'ASC';
+    if (!sortBy) sortBy = 'month';
+    else if (sortOptions.find(s => s == sortBy.toLowerCase()) == undefined) {
+        return next(new Error("Input sortBy is not supported.  Please use one of the following: " + sortOptions.toString(), 400));
+    }
+    if (!sortDirection) sortDirection = 'ASC';
+    else if (sortDirection.toUpperCase() != 'DESC' && sortDirection.toUpperCase() != 'ASC') {
+        return next(new Error("Input sortDirection is not supported.  Please use ASC or DESC.", 400));
+    }
 
     let revenue;
     try {
@@ -69,11 +75,16 @@ const getRevenueByGroup = async (req, res, next) => {
     let { groupId, role, sortBy, sortDirection } = req.query;
 
     if (!fromMonth || !fromYear || !toMonth || !toYear) {
-        const error = new Error("Please add appropriate to and from dates, with a month and a year.", 400);
-        return next(error);
+        return next(new Error("Please add appropriate to and from dates, with a month and a year.", 400));
     }
-    if (!sortBy || sortOptions.find(s => s == sortBy.toLowerCase()) == undefined) sortBy = 'month';
-    if (!sortDirection || sortDirection != 'DESC' && sortDirection != 'ASC') sortDirection = 'ASC';
+    if (!sortBy) sortBy = 'month';
+    else if (sortOptions.find(s => s == sortBy.toLowerCase()) == undefined) {
+        return next(new Error("Input sortBy is not supported.  Please use one of the following: " + sortOptions.toString(), 400));
+    }
+    if (!sortDirection) sortDirection = 'ASC';
+    else if (sortDirection.toUpperCase() != 'DESC' && sortDirection.toUpperCase() != 'ASC') {
+        return next(new Error("Input sortDirection is not supported.  Please use ASC or DESC.", 400));
+    }
     if (groupId) {
         // Check that this group exists
         let group = (await pgclient.query(queries.getGroupTableQuery(groupId))).rows[0];
