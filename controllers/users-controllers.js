@@ -25,7 +25,7 @@ const getUserById = async (req, res, next) => {
     try {
         user = (await pgclient.query(queries.getUserTableQuery(userId))).rows[0];
     } catch (e) {
-        const error = new Error('Failed to retrieve a user, please try again', 500);
+        const error = new Error('Failed to retrieve a user, please try again at a later time', 500);
         return next (error);
     }
 
@@ -64,7 +64,7 @@ const createUser = async (req, res, next) => {
         newUserId = parseInt((await pgclient.query(queries.getNewIdTableQuery('users'))).rows[0].id) + 1;
         group = await pgclient.query(queries.getGroupTableQuery(groupId));
     } catch (e) {
-        const error = new Error('Failed to access database, please try again', 500);
+        const error = new Error('Failed to access database, please try again at a later time', 500);
         return next (error);
     }
 
@@ -78,7 +78,7 @@ const createUser = async (req, res, next) => {
     try {
         await pgclient.query(queries.createUserTableQuery(newUserId, name, role, groupId));
     } catch (e) {
-        const error = new Error('Failed to access database, please try again', 500);
+        const error = new Error('Failed to access database, please try again at a later time', 500);
         return next (error);
     }
     
@@ -94,13 +94,26 @@ const deleteUser = async (req, res, next) => {
     const { userId } = req.params;
     const { fullDelete } = req.query;
 
+    let user;
+    try {
+        user = (await pgclient.query(queries.getUserTableQuery(userId))).rows[0];
+    } catch (e) {
+        const error = new Error('Failed to access database, please try again at a later time', 500);
+        return next (error);
+    }
+
+    if (!user) {
+        const error = new Error("Could not find a user for the provided id.", 404);
+        return next (error);
+    }
+
     if (fullDelete.toLowerCase() != 'true') {
         // Check the user's sales records.  If any exist, this request might be a mistake.  (* see note in function header comment)
         let sales;
         try {
             sales = (await pgclient.query(queries.getSalesByUserTableQuery(userId, 1))).rows;
         } catch (e) {
-            const error = new Error(`Failed to access database, please try again`, 500);
+            const error = new Error(`Failed to access database, please try again at a later time`, 500);
             return next (error);
         }
     
@@ -113,7 +126,7 @@ const deleteUser = async (req, res, next) => {
     try {
         await pgclient.query(queries.deleteUserTableQuery(userId));
     } catch (e) {
-        const error = new Error('Failed to access database, please try again', 500);
+        const error = new Error('Failed to access database, please try again at a later time', 500);
         return next (error);
     }
     

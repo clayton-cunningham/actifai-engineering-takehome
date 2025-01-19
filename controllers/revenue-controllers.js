@@ -42,7 +42,7 @@ const getRevenueByUser = async (req, res, next) => {
     try {
         revenue = (await pgclient.query(queries.getRevenueByUserTableQuery(userId, fromMonth, fromYear, toMonth, toYear, sortBy, sortDirection))).rows;
     } catch (e) {
-        const error = new Error('Failed to retrieve revenue, please try again', 500);
+        const error = new Error('Failed to retrieve revenue, please try again at a later time', 500);
         return next(error);
     }
 
@@ -82,7 +82,7 @@ const getRevenueByGroup = async (req, res, next) => {
     try {
         revenue = (await pgclient.query(queries.getRevenueByGroupTableQueryRange(groupId, fromMonth, fromYear, toMonth, toYear, sortBy, sortDirection, role))).rows;
     } catch (e) {
-        const error = new Error('Failed to retrieve revenue, please try again', 500);
+        const error = new Error('Failed to retrieve revenue, please try again at a later time', 500);
         return next(error);
     }
 
