@@ -52,13 +52,14 @@ const getRevenueByUser = async (req, res, next) => {
 
     let revenue;
     try {
+        // Aggregate the revenue
         revenue = (await pgclient.query(queries.getRevenueByUserTableQuery(userId, fromMonth, fromYear, toMonth, toYear, sortBy, sortDirection))).rows;
     } catch (e) {
         const error = new HttpError('Failed to retrieve revenue, please try again at a later time', 500);
         return next(error);
     }
 
-    if (!revenue) {
+    if (!revenue || revenue.length == 0) {
         const error = new HttpError("Could not find any revenue for the provided id.", 404);
         return next(error);
     }

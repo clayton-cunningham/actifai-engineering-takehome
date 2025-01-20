@@ -46,7 +46,7 @@ const getSaleById = async (req, res, next) => {
 /**
  * Retrieves a user's sales
  * @param {userId} params The user to retrieve sales for
- * @param {limit}  query  Optional; specifies a maximum number of sales to retrieve.  Default is 10.
+ * @param {limit}  query  Optional; specifies a maximum number of sales to retrieve.  (default: 10)
  */
 const getSalesByUserId = async (req, res, next) => {
     const userId = req.params.userId;

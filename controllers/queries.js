@@ -65,11 +65,11 @@ const createGroupTableQuery =        (groupId, groupName)  => `INSERT INTO group
  */
 // This retrieves the maximum id in the database, to assist in generating a unique id for new entries.
 const getNewIdTableQuery =          (table)         => `SELECT MAX(id) as id FROM ${table}`;
-// This helper simply retrieves a date value in YYYY-MM format.
+// This helper retrieves a date value in YYYY-MM format.
 const getMonthYearFromDate = `SUBSTR(CAST(date as text), 1, 7)`;
 // This helper retrieves all sales between two YYYY-MM dates.
 const filterByMonthYearRange = (fromMonth, fromYear, toMonth, toYear) => `SELECT * FROM sales WHERE ${getMonthYearFromDate} between '${fromYear}-${fromMonth}' AND '${toYear}-${toMonth}'`;
-// This simply obtains an average, but a sum and count.  Keep these cast commands - ensures we don't round to full dollars.  The decimals can be expanded in the future if necessary to avoid rounding issues.
+// This obtains an average, from a sum and count.  Keep these cast commands - they ensure we don't round to full dollars.  The decimals can be expanded in the future if necessary to avoid rounding issues.
 const getAverage = `cast(cast
                         (SUM(amount) as DECIMAL(11, 3)) / COUNT(*)
                     as DECIMAL(10, 2))`;
@@ -78,7 +78,7 @@ const getAverage = `cast(cast
  * Aggregations
  */
 // These queries retrieve time series data by month, over a range of time.  Sort options are included.
-// The primary difference between the queries is: the first one above retrieves data for a user id, while the second retrieves data for a collection of users which can be filtered by group or role.  These may be combined in the future if time allows.
+// The primary difference between the queries is: the first one above retrieves data for a user id, while the second retrieves data for a collection of users which can be filtered by group or role.  These may be combined in the future if desired.
 const getRevenueByUserTableQuery =     (userId, fromMonth, fromYear, toMonth, toYear, sortBy, sortDirection)    => 
                                                         `SELECT 
                                                             ${getMonthYearFromDate} as month,

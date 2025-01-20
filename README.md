@@ -51,8 +51,8 @@ All testing has been with the host url `http://localhost:3000/`, but I'll exclud
 These endpoints all return data in largely the same format: the total revenue for the month, the number of sales, and the average (total revenue per sale).  
 However, each endpoint incorporates a number of ways to specify what data should be included from the database.  Some fields common across all endpoints are:
 - `fromYear`, `fromMonth`, `toYear`, `toMonth`: these specify the range of months to query for.  Note that these are required to call the endpoints, and must be in YYYY or MM format.
-- `sortBy`: the data returned can be sorted on of the fields returned.  This includes: "month", "totalSaleRevenue", "numberOfSales", "averageRevenueBySales" (not case senstive).  
-- `sortDirection`: supports `sortBy`, and can be either "DESC" or "ASC" (also not case sensitive).
+- `sortBy`: the data returned can be sorted on one of the fields returned.  This includes: "month", "totalSaleRevenue", "numberOfSales", "averageRevenueBySales" (not case senstive).  
+- `sortDirection`: supports a sort order for `sortBy`, and can be either "DESC" or "ASC" (also not case sensitive).
 
 Details on specific endpoints are below.
 
@@ -65,9 +65,9 @@ This endpoint returns the data for a single user, across the time span specified
 GET  `.../revenue`   
 Query parameters: `fromYear`, `toYear`, `fromMonth`, `toMonth`, `sortBy`, `sortDirection`, `groupId`, `role`, `getUserInfo`  
 This endpoint returns data aggregated from a selection of users.  By default, this will include all users in the database, but can be filtered to any group or role with the parameters (or a combination of both).  
-Some query parameters this introduces:
+This introduces a few query parameters:
 - `groupId`: a group id to filer on.  If this is included, we will only use data from users in this group.
-- `role`: a role id to filter on (not case senstive).  Same as above, if included, we will only use data from users with this role.
+- `role`: a role name to filter on (not case senstive).  Same as above, if included, we will only use data from users with this role.
 - `getUserInfo`: this boolean parameter will trigger our api to return data specific to each user's monthly trends in addition to the monthly data.  Aka, if the data is pulling from users Alice and Bob for the month of January, we would return January's report aggregated from those users as normal, but also individual January reports from Alice and Bob.  The input for this field is "true" (not case sensitive).
 
 ### Get data across multiple groups of users
@@ -86,17 +86,25 @@ I've also added some other endpoints to allow for data manipulation.  These are 
 
 Sales:
 - GET `.../sales/{id}`
-- GET `.../sales/forUser/{userId}?limit={limit}` - retrieves a user's sales data, up to a limit - the default limit is 10 records, max limit is 50.
+- GET `.../sales/forUser/{userId}?limit={limit}`
+  - retrieves a user's sales data, up to a limit - the default limit is 10 records, max limit is 50.
 - POST `.../sales`
+  - Body: `{ "userId": number, "amount": number, "date": Date }`
 - DELETE `.../sales/{id}`
 
 Users:
 - GET `.../user/{id}`
 - POST `.../user`
-- DELETE `.../user/{id}?fullDelete=${bool}` - we won't allow a deletion if the user has existing sales, but if the `fullDelete` parameter is set to true, we'll delete these sales and the user.
-- PATCH `.../user/{id}` - can edit a user, or move them to a different group.
+  - Body: `{ "name": string, "role": string, "groupId": number }` (all required)
+- DELETE `.../user/{id}?fullDelete=${bool}`
+  - we won't allow a deletion if the user has existing sales, but if the `fullDelete` parameter is set to true, we'll delete these sales and the user.
+- PATCH `.../user/{id}`
+  - Body: `{ "name": string, "role": string, "groupId": number }` (all optional)
+  - can edit a user, or move them to a different group.
 
 Groups:
 - GET `.../group/{id}`
 - POST `.../group`
-- DELETE `.../group/{id}` - we won't allow a deletion if the group has existing users.
+  - Body: `{ "groupName": string }`
+- DELETE `.../group/{id}`
+  - we won't allow a deletion if the group has existing users.

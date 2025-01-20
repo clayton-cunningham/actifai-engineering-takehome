@@ -47,7 +47,7 @@ const getUserById = async (req, res, next) => {
 /**
  * Creates a user record
  *  * Note: we currently generate an id, but we may want to require a user id to be input for consistency with other records external to this system.
- *    Note 2 - we check if the group exist, but not if the user already exists.  We may want to add this in the future (i.e. if we can assume a user's full name will be unique)
+ *    Note 2 - we check if the group exist, but not if the user already exists.  We may want to add this in the future (i.e. if we expect some input value to be unique)
  * @param {name}    body The user's name
  * @param {role}    body The user's role
  * @param {groupId} body The user group to add this user to
@@ -107,7 +107,7 @@ const deleteUser = async (req, res, next) => {
         }
         
         if (!fullDelete || fullDelete.toLowerCase() != 'true') {
-            // Check the user's sales records.  If any exist, this request might be a mistake.  (* see note in function header comment)
+            // Check the user's sales records.  If any exist, this request might be a mistake.  (*see note in function header comment)
             let sales = (await pgclient.query(queries.getSalesByUserTableQuery(userId, 1))).rows;
             if (sales && sales.length > 0) {
                 return next(new HttpError("This user has sales records.  Set the 'fullDelete' query parameter to true if this user should still be deleted, along with those records.", 417));
@@ -125,9 +125,10 @@ const deleteUser = async (req, res, next) => {
 
 /**
  * Edit a user record
- * @param {name}    body The user's name
- * @param {role}    body The user's role
- * @param {groupId} body The user group to add this user to
+ * @param {userId}  params  The user id to edit
+ * @param {name}    body    The user's name
+ * @param {role}    body    The user's role
+ * @param {groupId} body    The user group to add this user to
  */
 const editUser = async (req, res, next) => {
     const { userId } = req.params;
