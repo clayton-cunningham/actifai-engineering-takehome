@@ -56,22 +56,22 @@ However, each endpoint incorporates a number of ways to specify what data should
 
 More details are below.
 
-`.../revenue/byUser/{userId}?fromYear={YYYY}&toYear={YYYY}&fromMonth={MM}&toMonth={MM}&sortBy={field}&sortDirection={DESC/ASC}`
-i.e. `http://localhost:3000/revenue/byUser/{userId}?fromYear=2021&toYear=2024&fromMonth=01&toMonth=01&sortBy=month&sortDirection=ASC`
+`.../revenue/byUser/{userId}?fromYear={YYYY}&toYear={YYYY}&fromMonth={MM}&toMonth={MM}&sortBy={field}&sortDirection={DESC/ASC}`  
+i.e. `http://localhost:3000/revenue/byUser/{userId}?fromYear=2021&toYear=2024&fromMonth=01&toMonth=01&sortBy=month&sortDirection=ASC`  
 This endpoint returns the data for a single user, across the time span specified.
 
-`.../revenue?fromYear={YYYY}&toYear={YYYY}&fromMonth={MM}&toMonth={MM}&sortBy={field}&sortDirection={DESC/ASC}&groupId={groupId}&role={role}&getUserInfo={getUserInfo}`
-i.e. `http://localhost:3000/revenue?fromYear=2021&toYear=2021&fromMonth=01&toMonth=09&sortBy=averagerevenuebysales&sortDirection=asc&groupId=2&role=Admin&groupId=2&getUserInfo=false`
-This endpoint returns data aggregated from a selection of users.  By default, this will include all users in the database, but can be filtered to any group or role with the parameters (or a combination of both).
+`.../revenue?fromYear={YYYY}&toYear={YYYY}&fromMonth={MM}&toMonth={MM}&sortBy={field}&sortDirection={DESC/ASC}&groupId={groupId}&role={role}&getUserInfo={getUserInfo}`  
+i.e. `http://localhost:3000/revenue?fromYear=2021&toYear=2021&fromMonth=01&toMonth=09&sortBy=averagerevenuebysales&sortDirection=asc&groupId=2&role=Admin&groupId=2&getUserInfo=false`  
+This endpoint returns data aggregated from a selection of users.  By default, this will include all users in the database, but can be filtered to any group or role with the parameters (or a combination of both).  
 Some query parameters this introduces:
 - `groupId`: a group id to filer on.  If this is included, we will only use data from users in this group.
 - `role`: a role id to filter on (case senstive).  Same as above, if included, we will only use data from users with this role.
-- `getUserInfo`: this boolean parameter will trigger our api to return data specific to each user's monthly trends in addition to the monthly data.  Aka, if the data is pulling from users Alice and Bob for the month of January, we would return January's report of both Alice and Bob, as well as individual January reports from Alice and Bob.  The input for this field is "true" (not case sensitive).
+- `getUserInfo`: this boolean parameter will trigger our api to return data specific to each user's monthly trends in addition to the monthly data.  Aka, if the data is pulling from users Alice and Bob for the month of January, we would return January's report aggregated from those users as normal, but also individual January reports from Alice and Bob.  The input for this field is "true" (not case sensitive).
 
-`.../revenue?fromYear={YYYY}&toYear={YYYY}&fromMonth={MM}&toMonth={MM}&sortBy={field}&sortDirection={DESC/ASC}&getUserInfo={getUserInfo}`
-Body: `{ "groupIds": [], "roles": [] }`
-i.e. `http://localhost:3000/revenue?fromYear=2021&toYear=2021&fromMonth=01&toMonth=09&sortBy=averagerevenuebysales&sortDirection=asc&getUserInfo=true`
-Body: `{ "groupIds": [1, 2], "roles": ["Admin"] }`
+`.../revenue?fromYear={YYYY}&toYear={YYYY}&fromMonth={MM}&toMonth={MM}&sortBy={field}&sortDirection={DESC/ASC}&getUserInfo={getUserInfo}`  
+Body: `{ "groupIds": [], "roles": [] }`  
+i.e. `http://localhost:3000/revenue?fromYear=2021&toYear=2021&fromMonth=01&toMonth=09&sortBy=averagerevenuebysales&sortDirection=asc&getUserInfo=true`  
+Body: `{ "groupIds": [1, 2], "roles": ["Admin"] }`  
 This endpoint is the same as above, except the group and role parameters are instead within the body of the request.  This allows multiple groups and roles to be specified.
 
 ### Other endpoints
