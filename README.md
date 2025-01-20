@@ -41,3 +41,20 @@ your browser. You should see a "Hello World" message.
 ## Help
 
 If you have any questions, feel free to reach out to your interview scheduler for clarification!
+
+# Submission
+
+## Endpoints
+All endpoints use the host url `http://localhost:3000/`, so I'll use that as the base for the endpoints below.
+
+### Time Series Data
+These endpoints all return data in largely the same format: the total revenue for the month, the number of sales, and the average (total revenue per sale).  
+However, each endpoint incorporates a number of ways to specify what data should be included from the database.  Some fields common across all endpoints are:
+- `fromYear`, `fromMonth`, `toYear`, `toMonth`: these specify the range of months to query for.  Note that these are required to call the endpoints, and must be in YYYY or MM format.
+- `sortBy`: the data returned can be sorted on of the fields returned.  This includes: "month", "totalSaleRevenue", "numberOfSales", "averageRevenueBySales" (not case senstive).  
+- `sortDirection`: supports `sortBy`, and can be either "DESC" or "ASC" (also not case sensitive).
+More details are below.
+
+- `revenue/byUser/1?fromYear={YYYY}&toYear={YYYY}&fromMonth={MM}&toMonth={MM}&sortBy={field}&sortDirection={DESC/ASC}`
+i.e. `http://localhost:3000/revenue/byUser/1?fromYear=2021&toYear=2024&fromMonth=01&toMonth=01&sortBy=month&sortDirection=ASC`
+
