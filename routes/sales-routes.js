@@ -7,18 +7,31 @@ const { check } = require('express-validator');
 
 const router = express.Router();
 
-router.get("/:saleId", salesControllers.getSaleById);
-router.get("/forUser/:userId", salesControllers.getSalesByUserId);
+router.get("/:saleId", 
+    [
+        check('saleId').isInt({min:1}),
+    ],
+    salesControllers.getSaleById);
+router.get("/forUser/:userId", 
+    [
+        check('userId').isInt({min:1}),
+        check('limit').isInt({min:1}),
+    ],
+    salesControllers.getSalesByUserId);
 
 router.post("/",
     [
-        check('userId').not().isEmpty(),
-        check('amount').not().isEmpty(),
-        check('date').not().isEmpty(),
+        check('userId').not().isEmpty().isInt({min:1}),
+        check('amount').not().isEmpty().isInt({min:1}),
+        check('date').not().isEmpty().isDate(),
     ],
     salesControllers.createSale
 );
 
-router.delete("/:saleId", salesControllers.deleteSale);
+router.delete("/:saleId", 
+    [
+        check('saleId').isInt({min:1}),
+    ],
+    salesControllers.deleteSale);
 
 module.exports = router;

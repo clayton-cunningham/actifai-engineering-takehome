@@ -7,7 +7,11 @@ const { check } = require('express-validator');
 
 const router = express.Router();
 
-router.get("/:groupId", groupsControllers.getGroupById);
+router.get("/:groupId", 
+    [
+        check('groupId').isInt({min:1}),
+    ],
+    groupsControllers.getGroupById);
 
 router.post("/",
     [
@@ -16,6 +20,10 @@ router.post("/",
     groupsControllers.createGroup
 );
 
-router.delete("/:groupId", groupsControllers.deleteGroup);
+router.delete("/:groupId", 
+    [
+        check('groupId').isInt({min:1}),
+    ],
+    groupsControllers.deleteGroup);
 
 module.exports = router;

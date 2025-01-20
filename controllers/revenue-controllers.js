@@ -3,6 +3,7 @@
 const { Client } = require('pg');
 const queries = require("./queries");
 const HttpError = require('../models/http-error');
+const { validationResult } = require('express-validator');
 
 const pgclient = new Client({
     host: 'db',
@@ -31,10 +32,14 @@ const getRevenueByUser = async (req, res, next) => {
     const { fromMonth, fromYear, toMonth, toYear } = req.query;
     let { sortBy, sortDirection } = req.query;
 
-    if (!fromMonth || !fromYear || !toMonth || !toYear) {
-        const error = new HttpError("Please add appropriate to and from dates, with a month and a year.", 400);
-        return next(error);
+    // Check input arguments for validity
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        console.log(errors);
+        return next(new HttpError("Invalid input.", 422));
     }
+
+    // Validate the query parameters
     if (!sortBy) sortBy = 'month';
     else if (sortOptions.find(s => s == sortBy.toLowerCase()) == undefined) {
         return next(new HttpError("Input sortBy is not supported.  Please use one of the following: " + sortOptions.toString(), 400));
@@ -77,10 +82,14 @@ const getRevenue = async (req, res, next) => {
     const { fromMonth, fromYear, toMonth, toYear, groupId, role, getUserInfo } = req.query;
     let { sortBy, sortDirection } = req.query;
 
-    // Validate the query parameters
-    if (!fromMonth || !fromYear || !toMonth || !toYear) {
-        return next(new HttpError("Please add appropriate to and from dates, with a month and a year.", 400));
+    // Check input arguments for validity
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        console.log(errors);
+        return next(new HttpError("Invalid input.", 422));
     }
+
+    // Validate the query parameters
     if (!sortBy) sortBy = 'month';
     else if (sortOptions.find(s => s == sortBy.toLowerCase()) == undefined) {
         return next(new HttpError("Input sortBy is not supported.  Please use one of the following: " + sortOptions.toString(), 400));
@@ -158,10 +167,14 @@ const revenuePostQuery = async (req, res, next) => {
     let { groupIds, roles } = req.body;
     let { sortBy, sortDirection } = req.query;
 
-    // Validate the query parameters
-    if (!fromMonth || !fromYear || !toMonth || !toYear) {
-        return next(new HttpError("Please add appropriate to and from dates, with a month and a year.", 400));
+    // Check input arguments for validity
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        console.log(errors);
+        return next(new HttpError("Invalid input.", 422));
     }
+
+    // Validate the query parameters
     if (!sortBy) sortBy = 'month';
     else if (sortOptions.find(s => s == sortBy.toLowerCase()) == undefined) {
         return next(new HttpError("Input sortBy is not supported.  Please use one of the following: " + sortOptions.toString(), 400));

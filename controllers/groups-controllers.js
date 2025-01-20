@@ -21,6 +21,13 @@ pgclient.connect();
  */
 const getGroupById = async (req, res, next) => {
     const groupId = req.params.groupId;
+    
+    // Check input arguments for validity
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        console.log(errors);
+        return next(new HttpError("Invalid input.", 422));
+    }
 
     let group;
     try {
@@ -72,6 +79,13 @@ const createGroup = async (req, res, next) => {
  */
 const deleteGroup = async (req, res, next) => {
     const { groupId } = req.params;
+    
+    // Check input arguments for validity
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        console.log(errors);
+        return next(new HttpError("Invalid input.", 422));
+    }
 
     try {
         // Check if the group exists

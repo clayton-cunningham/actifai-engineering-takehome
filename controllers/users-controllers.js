@@ -21,6 +21,13 @@ pgclient.connect();
  */
 const getUserById = async (req, res, next) => {
     const userId = req.params.userId;
+    
+    // Check input arguments for validity
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        console.log(errors);
+        return next(new HttpError("Invalid input.", 422));
+    }
 
     let user;
     try {
@@ -83,6 +90,13 @@ const createUser = async (req, res, next) => {
 const deleteUser = async (req, res, next) => {
     const { userId } = req.params;
     const { fullDelete } = req.query;
+    
+    // Check input arguments for validity
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        console.log(errors);
+        return next(new HttpError("Invalid input.", 422));
+    }
 
     try {
         // Check if user exists

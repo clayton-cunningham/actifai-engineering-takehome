@@ -21,6 +21,13 @@ pgclient.connect();
  */
 const getSaleById = async (req, res, next) => {
     const saleId = req.params.saleId;
+    
+    // Check input arguments for validity
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        console.log(errors);
+        return next(new HttpError("Invalid input.", 422));
+    }
 
     let sale;
     try {
@@ -44,6 +51,13 @@ const getSaleById = async (req, res, next) => {
 const getSalesByUserId = async (req, res, next) => {
     const userId = req.params.userId;
     let limit = req.query.limit;
+    
+    // Check input arguments for validity
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        console.log(errors);
+        return next(new HttpError("Invalid input.", 422));
+    }
 
     if (!limit) {
         limit = 10
@@ -110,6 +124,13 @@ const createSale = async (req, res, next) => {
  */
 const deleteSale = async (req, res, next) => {
     const { saleId } = req.params;
+    
+    // Check input arguments for validity
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        console.log(errors);
+        return next(new HttpError("Invalid input.", 422));
+    }
 
     try {
         // Check if the sale exists
