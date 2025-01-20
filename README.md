@@ -67,7 +67,7 @@ Query parameters: `fromYear`, `toYear`, `fromMonth`, `toMonth`, `sortBy`, `sortD
 This endpoint returns data aggregated from a selection of users.  By default, this will include all users in the database, but can be filtered to any group or role with the parameters (or a combination of both).  
 Some query parameters this introduces:
 - `groupId`: a group id to filer on.  If this is included, we will only use data from users in this group.
-- `role`: a role id to filter on (case senstive).  Same as above, if included, we will only use data from users with this role.
+- `role`: a role id to filter on (not case senstive).  Same as above, if included, we will only use data from users with this role.
 - `getUserInfo`: this boolean parameter will trigger our api to return data specific to each user's monthly trends in addition to the monthly data.  Aka, if the data is pulling from users Alice and Bob for the month of January, we would return January's report aggregated from those users as normal, but also individual January reports from Alice and Bob.  The input for this field is "true" (not case sensitive).
 
 ### Get data across multiple groups of users

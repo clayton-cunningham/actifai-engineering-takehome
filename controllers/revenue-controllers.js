@@ -4,6 +4,7 @@ const { Client } = require('pg');
 const queries = require("./queries");
 const HttpError = require('../models/http-error');
 const { validationResult } = require('express-validator');
+const { formatRole } = require('./helpers');
 
 const pgclient = new Client({
     host: 'db',
@@ -114,12 +115,12 @@ const getRevenue = async (req, res, next) => {
         let roles;
         if (role) {
             // Check that this role exists
-            let usersForRole = (await pgclient.query(queries.getUsersByRoleTableQuery(role))).rows;
+            let usersForRole = (await pgclient.query(queries.getUsersByRoleTableQuery(formatRole(role)))).rows;
             if (!usersForRole || usersForRole.length == 0) {
                 return next(new HttpError("Could not find any users with the provided role.", 404));
             }
             roles = [];
-            roles.push(`'${role}'`)
+            roles.push(`'${formatRole(role)}'`)
         }
 
         // Aggregate the revenue
@@ -195,7 +196,7 @@ const revenuePostQuery = async (req, res, next) => {
         }
         if (roles) {
             // Check that this role exists
-            roles = roles.map(r => `'${r}'`);
+            roles = roles.map(r => `'${formatRole(r)}'`);
             let usersForRole = (await pgclient.query(queries.getUsersByRolesTableQuery(roles))).rows;
             if (!usersForRole || usersForRole.length == 0) {
                 return next(new HttpError("Could not find any users with the provided roles.", 404));

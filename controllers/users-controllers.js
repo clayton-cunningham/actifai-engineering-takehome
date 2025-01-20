@@ -4,6 +4,7 @@ const { Client } = require('pg');
 const queries = require("./queries");
 const { validationResult } = require('express-validator');
 const HttpError = require('../models/http-error');
+const { formatRole } = require('./helpers');
 
 const pgclient = new Client({
     host: 'db',
@@ -74,7 +75,7 @@ const createUser = async (req, res, next) => {
         newUserId = parseInt((await pgclient.query(queries.getNewIdTableQuery('users'))).rows[0].id) + 1;
 
         // Create a user
-        await pgclient.query(queries.createUserQuery(newUserId, name, role, groupId));
+        await pgclient.query(queries.createUserQuery(newUserId, name, formatRole(role), groupId));
     } catch (e) {
         return next(new HttpError('Failed to access database, please try again at a later time', 500));
     }
@@ -156,7 +157,7 @@ const editUser = async (req, res, next) => {
         }
 
         // Create a user
-        await pgclient.query(queries.editUserQuery(userId, name, role, groupId));
+        await pgclient.query(queries.editUserQuery(userId, name, formatRole(role), groupId));
     } catch (e) {
         return next(new HttpError('Failed to access database, please try again at a later time', 500));
     }
