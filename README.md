@@ -45,7 +45,7 @@ If you have any questions, feel free to reach out to your interview scheduler fo
 # Submission
 
 ## Endpoints
-All endpoints use the host url `http://localhost:3000/`, so I'll use that as the base for the endpoints below.
+All testing has been with the host url `http://localhost:3000/`, but I'll exclude the base url for the endpoints below.
 
 ### Time Series Data
 These endpoints all return data in largely the same format: the total revenue for the month, the number of sales, and the average (total revenue per sale).  
@@ -54,25 +54,27 @@ However, each endpoint incorporates a number of ways to specify what data should
 - `sortBy`: the data returned can be sorted on of the fields returned.  This includes: "month", "totalSaleRevenue", "numberOfSales", "averageRevenueBySales" (not case senstive).  
 - `sortDirection`: supports `sortBy`, and can be either "DESC" or "ASC" (also not case sensitive).
 
-More details are below.
+Details on specific endpoints are below.
 
 `.../revenue/byUser/{userId}`  
 Query parameters: `fromYear`, `toYear`, `fromMonth`, `toMonth`, `sortBy`, `sortDirection`  
-i.e. `http://localhost:3000/revenue/byUser/{userId}?fromYear=2021&toYear=2024&fromMonth=01&toMonth=01&sortBy=month&sortDirection=ASC`  
+Example: <sup>http://localhost:3000/revenue/byUser/{userId}?fromYear=2021&toYear=2024&fromMonth=01&toMonth=01&sortBy=month&sortDirection=ASC</sup>  
 This endpoint returns the data for a single user, across the time span specified.
 
-`.../revenue?fromYear={YYYY}&toYear={YYYY}&fromMonth={MM}&toMonth={MM}&sortBy={field}&sortDirection={DESC/ASC}&groupId={groupId}&role={role}&getUserInfo={getUserInfo}`  
-i.e. `http://localhost:3000/revenue?fromYear=2021&toYear=2021&fromMonth=01&toMonth=09&sortBy=averagerevenuebysales&sortDirection=asc&groupId=2&role=Admin&groupId=2&getUserInfo=false`  
+`.../revenue`  
+Query parameters: `fromYear`, `toYear`, `fromMonth`, `toMonth`, `sortBy`, `sortDirection`, `groupId`, `role`, `getUserInfo`  
+Example: <sup>http://localhost:3000/revenue?fromYear=2021&toYear=2021&fromMonth=01&toMonth=09&sortBy=averagerevenuebysales&sortDirection=asc&groupId=2&role=Admin&groupId=2&getUserInfo=false</sup>  
 This endpoint returns data aggregated from a selection of users.  By default, this will include all users in the database, but can be filtered to any group or role with the parameters (or a combination of both).  
 Some query parameters this introduces:
 - `groupId`: a group id to filer on.  If this is included, we will only use data from users in this group.
 - `role`: a role id to filter on (case senstive).  Same as above, if included, we will only use data from users with this role.
 - `getUserInfo`: this boolean parameter will trigger our api to return data specific to each user's monthly trends in addition to the monthly data.  Aka, if the data is pulling from users Alice and Bob for the month of January, we would return January's report aggregated from those users as normal, but also individual January reports from Alice and Bob.  The input for this field is "true" (not case sensitive).
 
-`.../revenue?fromYear={YYYY}&toYear={YYYY}&fromMonth={MM}&toMonth={MM}&sortBy={field}&sortDirection={DESC/ASC}&getUserInfo={getUserInfo}`  
+`.../revenue`  
+Query parameters: `fromYear`, `toYear`, `fromMonth`, `toMonth`, `sortBy`, `sortDirection`, `getUserInfo`  
 Body: `{ "groupIds": [], "roles": [] }`  
-i.e. `http://localhost:3000/revenue?fromYear=2021&toYear=2021&fromMonth=01&toMonth=09&sortBy=averagerevenuebysales&sortDirection=asc&getUserInfo=true`  
-Body: `{ "groupIds": [1, 2], "roles": ["Admin"] }`  
+Example: <sup>http://localhost:3000/revenue?fromYear=2021&toYear=2021&fromMonth=01&toMonth=09&sortBy=averagerevenuebysales&sortDirection=asc&getUserInfo=true</sup>  
+Example body: <sup>{ "groupIds": [1, 2], "roles": ["Admin"] }</sup>  
 This endpoint is the same as above, except the group and role parameters are instead within the body of the request.  This allows multiple groups and roles to be specified.
 
 ### Other endpoints
