@@ -56,26 +56,30 @@ However, each endpoint incorporates a number of ways to specify what data should
 
 Details on specific endpoints are below.
 
-`.../revenue/byUser/{userId}`  
+### Get data for a user
+GET `.../revenue/byUser/{userId}`   
 Query parameters: `fromYear`, `toYear`, `fromMonth`, `toMonth`, `sortBy`, `sortDirection`  
-Example: <sup>http://localhost:3000/revenue/byUser/{userId}?fromYear=2021&toYear=2024&fromMonth=01&toMonth=01&sortBy=month&sortDirection=ASC</sup>  
 This endpoint returns the data for a single user, across the time span specified.
 
-`.../revenue`  
+### Get data for a group of users
+GET  `.../revenue`   
 Query parameters: `fromYear`, `toYear`, `fromMonth`, `toMonth`, `sortBy`, `sortDirection`, `groupId`, `role`, `getUserInfo`  
-Example: <sup>http://localhost:3000/revenue?fromYear=2021&toYear=2021&fromMonth=01&toMonth=09&sortBy=averagerevenuebysales&sortDirection=asc&groupId=2&role=Admin&groupId=2&getUserInfo=false</sup>  
 This endpoint returns data aggregated from a selection of users.  By default, this will include all users in the database, but can be filtered to any group or role with the parameters (or a combination of both).  
 Some query parameters this introduces:
 - `groupId`: a group id to filer on.  If this is included, we will only use data from users in this group.
 - `role`: a role id to filter on (case senstive).  Same as above, if included, we will only use data from users with this role.
 - `getUserInfo`: this boolean parameter will trigger our api to return data specific to each user's monthly trends in addition to the monthly data.  Aka, if the data is pulling from users Alice and Bob for the month of January, we would return January's report aggregated from those users as normal, but also individual January reports from Alice and Bob.  The input for this field is "true" (not case sensitive).
 
-`.../revenue`  
+### Get data across multiple groups of users
+POST `.../revenue`   
 Query parameters: `fromYear`, `toYear`, `fromMonth`, `toMonth`, `sortBy`, `sortDirection`, `getUserInfo`  
 Body: `{ "groupIds": [], "roles": [] }`  
-Example: <sup>http://localhost:3000/revenue?fromYear=2021&toYear=2021&fromMonth=01&toMonth=09&sortBy=averagerevenuebysales&sortDirection=asc&getUserInfo=true</sup>  
-Example body: <sup>{ "groupIds": [1, 2], "roles": ["Admin"] }</sup>  
 This endpoint is the same as above, except the group and role parameters are instead within the body of the request.  This allows multiple groups and roles to be specified.
+
+### Example Url's
+- GET `http://localhost:3000/revenue/byUser/{userId}?fromYear=2021&toYear=2024&fromMonth=01&toMonth=01&sortBy=month&sortDirection=ASC`
+- GET `http://localhost:3000/revenue?fromYear=2021&toYear=2021&fromMonth=01&toMonth=09&sortBy=averagerevenuebysales&sortDirection=asc&groupId=2&role=Admin&groupId=2&getUserInfo=false`
+- POST `http://localhost:3000/revenue?fromYear=2021&toYear=2021&fromMonth=01&toMonth=09&sortBy=averagerevenuebysales&sortDirection=asc&getUserInfo=true`, `{ "groupIds": [1, 2], "roles": ["Admin"] }`
 
 ### Other endpoints
 I've also added some other endpoints to allow for data manipulation.  These are mostly standard, so I'll keep details to a minimum here.
