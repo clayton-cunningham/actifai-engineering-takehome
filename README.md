@@ -56,7 +56,8 @@ However, each endpoint incorporates a number of ways to specify what data should
 
 More details are below.
 
-`.../revenue/byUser/{userId}?fromYear={YYYY}&toYear={YYYY}&fromMonth={MM}&toMonth={MM}&sortBy={field}&sortDirection={DESC/ASC}`  
+`.../revenue/byUser/{userId}`  
+Query parameters: `fromYear`, `toYear`, `fromMonth`, `toMonth`, `sortBy`, `sortDirection`  
 i.e. `http://localhost:3000/revenue/byUser/{userId}?fromYear=2021&toYear=2024&fromMonth=01&toMonth=01&sortBy=month&sortDirection=ASC`  
 This endpoint returns the data for a single user, across the time span specified.
 
